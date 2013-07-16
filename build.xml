@@ -80,7 +80,7 @@
 
   <!-- resolve -->
   <target name="resolve" depends="prepare">
-    <ivy:resolve />
+    <ivy:resolve/>
     <ivy:retrieve pattern="${dir.build.plugins}/[organisation].[artifact]-[revision].[ext]"/>
     <unjar dest="${dir.build.plugins}">
       <fileset dir="${dir.build.plugins}">
