@@ -19,8 +19,7 @@ public class ComponentBundleConfiguration implements Configuration
 {
   // MEMBERS
   private final ComponentBundleInstance bundle;
-  private final ConcurrentMap<String, String> configuration=
-    new ConcurrentHashMap<String, String>();
+  private final ConcurrentMap<String, String> configuration=new ConcurrentHashMap<>();
 
 
   // CONSTRUCTION
@@ -106,7 +105,7 @@ public class ComponentBundleConfiguration implements Configuration
       );
     }
 
-    if(!configurationFile.exists()&&null!=bundle.getBundle().getResource(configurationFileName))
+    if(!configurationFile.exists() && null!=bundle.getBundle().getResource(configurationFileName))
     {
       configurationFile=new File(
         bundle.getBundle().getResource(configurationFileName).toExternalForm()

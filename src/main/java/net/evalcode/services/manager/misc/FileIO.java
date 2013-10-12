@@ -45,12 +45,8 @@ public final class FileIO
     final byte[] buffer=new byte[READ_BUFFER_SIZE];
     final ByteBuffer byteBuffer=ByteBuffer.allocateDirect(READ_BUFFER_SIZE);
 
-    FileInputStream inputStream=null;
-
-    try
+    try(final FileInputStream inputStream=new FileInputStream(file))
     {
-      inputStream=new FileInputStream(file);
-
       int read=0;
 
       while(0<=(read=inputStream.read(buffer)))
@@ -67,21 +63,6 @@ public final class FileIO
     {
       LOG.warn(e.getMessage(), e);
     }
-    finally
-    {
-      // TODO Unfortunately clover does not support try-with-resources yet.
-      if(null!=inputStream)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch(final IOException e)
-        {
-          LOG.warn(e.getMessage(), e);
-        }
-      }
-    }
 
     return stringBuilder.toString();
   }
@@ -94,20 +75,13 @@ public final class FileIO
 
     final ByteBuffer byteBuffer=charset.encode(content);
 
-    final FileOutputStream outputStream=new FileOutputStream(file);
-
-    try
+    try(final FileOutputStream outputStream=new FileOutputStream(file))
     {
       outputStream.write(byteBuffer.array(), 0, byteBuffer.limit());
     }
     catch(final IOException e)
     {
       LOG.warn(e.getMessage(), e);
-    }
-    finally
-    {
-      // TODO Unfortunately clover does not support try-with-resources yet.
-      outputStream.close();
     }
   }
 

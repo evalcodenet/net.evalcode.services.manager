@@ -9,6 +9,7 @@ import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.misc.FileIO;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
@@ -99,8 +100,13 @@ public class ConfigurationEntityManager<T>
       final FileIO fileIo=providerInjector.get().getInstance(FileIO.class);
 
       String configurationFileContent=fileIo.readFile(configurationFile);
+
       for(final String key : bundle.getConfiguration().keySet())
-        configurationFileContent=StringUtils.replace(configurationFileContent, "${"+key+"}", bundle.getConfiguration().get(key));
+      {
+        final String value=JSONObject.quote(bundle.getConfiguration().get(key));
+
+        configurationFileContent=StringUtils.replace(configurationFileContent, "${"+key+"}", value.substring(1, value.length()-1));
+      }
 
       final T configuration=objectMapper.readValue(configurationFileContent, clazz);
 
