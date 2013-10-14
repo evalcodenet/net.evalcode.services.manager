@@ -8,10 +8,10 @@ import net.evalcode.services.manager.annotation.Configuration;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.misc.FileIO;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 

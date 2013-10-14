@@ -99,7 +99,7 @@ public class EhCacheFactory implements RegionFactory
 
       mbeanRegistrationHelper.registerMBean(manager, properties);
     }
-    catch(net.sf.ehcache.CacheException e)
+    catch(final net.sf.ehcache.CacheException e)
     {
       throw new CacheException(e);
     }
@@ -116,7 +116,7 @@ public class EhCacheFactory implements RegionFactory
           manager.shutdown();
       }
     }
-    catch(net.sf.ehcache.CacheException e)
+    catch(final net.sf.ehcache.CacheException e)
     {
       throw new CacheException(e);
     }

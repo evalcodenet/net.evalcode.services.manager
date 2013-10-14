@@ -11,22 +11,21 @@ import javax.persistence.EntityManagerFactory;
 import net.evalcode.services.manager.configuration.ConfigurationEntityManager;
 import net.evalcode.services.manager.configuration.ConfigurationEntityProvider;
 import net.evalcode.services.manager.configuration.Environment;
-import net.evalcode.services.manager.internal.interceptor.MethodInvocationCounter;
-import net.evalcode.services.manager.internal.interceptor.MethodInvocationLogger;
 import net.evalcode.services.manager.internal.persistence.EntityManagerFactoryProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
 import net.evalcode.services.manager.management.logging.Log;
+import net.evalcode.services.manager.management.logging.impl.MethodInvocationLogger;
 import net.evalcode.services.manager.management.statistics.Count;
+import net.evalcode.services.manager.management.statistics.impl.MethodInvocationCounter;
 import net.evalcode.services.manager.misc.FileIO;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig.Feature;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -98,10 +97,12 @@ public class ServiceComponentModule extends AbstractModule
 
     for(final Class<?> configurationEntityClazz : this.bundle.getConfigurationEntities())
     {
-      final ConfigurationEntityManager configurationEntityManager=
-        new ConfigurationEntityManager(binder().getProvider(Injector.class),
-          provideObjectMapper(), bundle, configurationEntityClazz
-        );
+      final ConfigurationEntityManager configurationEntityManager=new ConfigurationEntityManager(
+        binder().getProvider(Injector.class),
+        provideObjectMapper(),
+        bundle,
+        configurationEntityClazz
+      );
 
       bind(ConfigurationEntityManager.class)
         .annotatedWith(Names.named(configurationEntityClazz.getName()))
@@ -139,23 +140,14 @@ public class ServiceComponentModule extends AbstractModule
   }
 
   @Provides
+  @SuppressWarnings("deprecation")
   ObjectMapper provideObjectMapper()
   {
     final ObjectMapper objectMapper=new ObjectMapper();
 
-    final JaxbAnnotationIntrospector jaxbAnnotationIntrospector=
-      new JaxbAnnotationIntrospector();
-    final JacksonAnnotationIntrospector jacksonAnnotationIntrospector=
-      new JacksonAnnotationIntrospector();
-
-    objectMapper.getDeserializationConfig().setAnnotationIntrospector(
-      AnnotationIntrospector.pair(jaxbAnnotationIntrospector, jacksonAnnotationIntrospector)
-    );
-
-    objectMapper.getSerializationConfig().enable(Feature.INDENT_OUTPUT);
-    objectMapper.getSerializationConfig().setAnnotationIntrospector(
-      AnnotationIntrospector.pair(jaxbAnnotationIntrospector, jacksonAnnotationIntrospector)
-    );
+    objectMapper.setAnnotationIntrospector(AnnotationIntrospector.pair(
+      new JaxbAnnotationIntrospector(), new JacksonAnnotationIntrospector()
+    ));
 
     return objectMapper;
   }

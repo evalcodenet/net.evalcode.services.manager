@@ -1,4 +1,4 @@
-package net.evalcode.services.manager.internal.interceptor;
+package net.evalcode.services.manager.management.logging.impl;
 
 
 import net.evalcode.services.manager.management.logging.Log;

@@ -1,4 +1,4 @@
-package net.evalcode.services.manager.internal.interceptor;
+package net.evalcode.services.manager.management.statistics.impl;
 
 
 import net.evalcode.services.manager.management.statistics.Count;

@@ -3,9 +3,9 @@ package net.evalcode.services.manager.internal.interceptor;
 
 import static org.junit.Assert.assertEquals;
 import java.lang.reflect.Method;
-import net.evalcode.services.manager.internal.interceptor.MethodInvocationCounter;
 import net.evalcode.services.manager.management.statistics.Count;
 import net.evalcode.services.manager.management.statistics.Counter;
+import net.evalcode.services.manager.management.statistics.impl.MethodInvocationCounter;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.BeforeClass;
 import org.junit.Test;

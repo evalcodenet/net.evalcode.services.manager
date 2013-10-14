@@ -80,49 +80,49 @@ public final class GenericDAO<T>
     throw new UnsupportedOperationException();
   }
 
-  public T moveUp(@SuppressWarnings("unused") final T item)
+  public T moveUp(final T item)
   {
     // TODO Implement.
 
     throw new UnsupportedOperationException();
   }
 
-  public T moveDown(@SuppressWarnings("unused") final T item)
+  public T moveDown(final T item)
   {
     // TODO Implement.
 
     throw new UnsupportedOperationException();
   }
 
-  public T moveAtTop(@SuppressWarnings("unused") final T item)
+  public T moveAtTop(final T item)
   {
     // TODO Implement.
 
     throw new UnsupportedOperationException();
   }
 
-  public T moveAtBottom(@SuppressWarnings("unused") final T item)
+  public T moveAtBottom(final T item)
   {
     return null;
   }
 
 
   // tree behavior
-  public T findParent(@SuppressWarnings("unused") final T node)
+  public T findParent(final T node)
   {
     // TODO Implement.
 
     throw new UnsupportedOperationException();
   }
 
-  public List<T> findChildren(@SuppressWarnings("unused") final T node)
+  public List<T> findChildren(final T node)
   {
     // TODO Implement.
 
     throw new UnsupportedOperationException();
   }
 
-  public List<T> findSiblings(@SuppressWarnings("unused") final T node)
+  public List<T> findSiblings(final T node)
   {
     // TODO Implement.
 
