@@ -19,7 +19,7 @@ import org.hibernate.ejb.packaging.PersistenceMetadata;
 public class PersistenceXmlMetadata extends PersistenceMetadata
 {
   // MEMBERS
-  private final AtomicReference<Properties> refProperties=new AtomicReference<>();
+  private final AtomicReference<Properties> refProperties=new AtomicReference<>(null);
   private final PersistenceXml xml;
 
 
@@ -49,20 +49,22 @@ public class PersistenceXmlMetadata extends PersistenceMetadata
   @Override
   public Properties getProps()
   {
-    if(null==refProperties.get())
+    final Properties properties=refProperties.get();
+
+    if(null==properties)
     {
-      synchronized(this)
-      {
-        final Properties properties=new Properties();
+      final Properties persistenceProperties=new Properties();
 
-        for(final PersistenceUnit.Properties.Property p : xml.persistenceUnit.properties.values)
-          properties.put(p.name, substituteSystemProperties(p.value));
+      for(final PersistenceUnit.Properties.Property p : xml.persistenceUnit.properties.values)
+        persistenceProperties.put(p.name, substituteSystemProperties(p.value));
 
-        refProperties.set(properties);
-      }
+      if(refProperties.compareAndSet(properties, persistenceProperties))
+        return persistenceProperties;
+
+      return refProperties.get();
     }
 
-    return refProperties.get();
+    return properties;
   }
 
   @Override
