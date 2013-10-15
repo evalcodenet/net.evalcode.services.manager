@@ -265,7 +265,8 @@ public enum SystemProperty
 
     if(globalPropertiesFile.exists())
     {
-      try(final FileInputStream globalPropertiesFileInputStream=new FileInputStream(globalPropertiesFile))
+      try(final FileInputStream globalPropertiesFileInputStream=
+        new FileInputStream(globalPropertiesFile))
       {
         LOG.debug("Loading global properties [file: {}].", globalPropertiesFile.getAbsolutePath());
 
@@ -288,7 +289,8 @@ public enum SystemProperty
 
     if(localPropertiesFile.exists())
     {
-      try(final FileInputStream localPropertiesFileInputStream=new FileInputStream(localPropertiesFile))
+      try(final FileInputStream localPropertiesFileInputStream=
+        new FileInputStream(localPropertiesFile))
       {
         LOG.debug("Loading local properties [file: {}].", localPropertiesFile.getAbsolutePath());
 
