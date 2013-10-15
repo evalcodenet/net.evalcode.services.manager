@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public final class FileIO
     }
     catch(final IOException e)
     {
-      LOG.warn(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     }
 
     return stringBuilder.toString();
@@ -109,30 +110,20 @@ public final class FileIO
       createFile(file);
 
     final ByteBuffer byteBuffer=charset.encode(content);
-    final FileOutputStream outputStream=new FileOutputStream(file);
 
-    try
+    try(final FileOutputStream outputStream=new FileOutputStream(file))
     {
       outputStream.write(byteBuffer.array(), 0, byteBuffer.limit());
     }
     catch(final IOException e)
     {
-      LOG.warn(e.getMessage(), e);
-    }
-    finally
-    {
-      // TODO Unfortunately clover does not support try-with-resources yet.
-      outputStream.close();
+      LOG.error(e.getMessage(), e);
     }
   }
 
   public void createFile(final File file) throws IOException
   {
-    final File path=file.getParentFile();
-
-    if(!path.exists())
-      path.mkdirs();
-
-    file.createNewFile();
+    Files.createDirectories(file.toPath().getParent());
+    Files.createFile(file.toPath());
   }
 }

@@ -53,8 +53,6 @@ public class EhCacheFactory implements RegionFactory
   private final ProviderMBeanRegistrationHelper mbeanRegistrationHelper=
     new ProviderMBeanRegistrationHelper();
 
-  @SuppressWarnings("unused")
-  private final Properties properties;
   private Settings settings;
   private volatile CacheManager manager;
 
@@ -63,8 +61,6 @@ public class EhCacheFactory implements RegionFactory
   public EhCacheFactory(final Properties properties)
   {
     super();
-
-    this.properties=properties;
   }
 
 
@@ -118,11 +114,8 @@ public class EhCacheFactory implements RegionFactory
   {
     try
     {
-      if(null!=manager)
-      {
-        if(1>COUNT_REFERENCES.decrementAndGet())
-          manager.shutdown();
-      }
+      if(null!=manager && 1>COUNT_REFERENCES.decrementAndGet())
+        manager.shutdown();
     }
     catch(final net.sf.ehcache.CacheException e)
     {
@@ -131,8 +124,8 @@ public class EhCacheFactory implements RegionFactory
   }
 
   @Override
-  public EntityRegion buildEntityRegion(
-    final String regionName, final Properties properties, final CacheDataDescription metadata)
+  public EntityRegion buildEntityRegion(final String regionName,
+    final Properties properties, final CacheDataDescription metadata)
   {
     return new EhcacheEntityRegion(
       accessStrategyFactory, getCache(regionName), settings, metadata, properties
@@ -140,8 +133,8 @@ public class EhCacheFactory implements RegionFactory
   }
 
   @Override
-  public CollectionRegion buildCollectionRegion(
-    final String regionName, final Properties properties, final CacheDataDescription metadata)
+  public CollectionRegion buildCollectionRegion(final String regionName,
+    final Properties properties, final CacheDataDescription metadata)
   {
     return new EhcacheCollectionRegion(
       accessStrategyFactory, getCache(regionName), settings, metadata, properties
@@ -149,15 +142,15 @@ public class EhCacheFactory implements RegionFactory
   }
 
   @Override
-  public QueryResultsRegion buildQueryResultsRegion(
-    final String regionName, final Properties properties)
+  public QueryResultsRegion buildQueryResultsRegion(final String regionName,
+    final Properties properties)
   {
     return new EhcacheQueryResultsRegion(accessStrategyFactory, getCache(regionName), properties);
   }
 
   @Override
-  public TimestampsRegion buildTimestampsRegion(
-    final String regionName, final Properties properties)
+  public TimestampsRegion buildTimestampsRegion(final String regionName,
+    final Properties properties)
   {
     return new EhcacheTimestampsRegion(accessStrategyFactory, getCache(regionName), properties);
   }

@@ -172,7 +172,9 @@ public class ComponentBundleConfiguration implements Configuration
     if(configuration.containsKey(bundle.getName()+".config"))
       return Paths.get(configuration.get(bundle.getName()+".config"), subPath);
 
-    return Paths.get(SystemProperty.getLocalConfigurationPath(bundle.getName()).toString(), subPath);
+    return Paths.get(
+      SystemProperty.getLocalConfigurationPath(bundle.getName()).toString(), subPath
+    );
   }
 
   @Override
@@ -190,7 +192,9 @@ public class ComponentBundleConfiguration implements Configuration
     if(configuration.containsKey(bundle.getName()+".config"))
       return Paths.get(configuration.get(bundle.getName()+".config"), subPath);
 
-    return Paths.get(SystemProperty.getGlobalConfigurationPath(bundle.getName()).toString(), subPath);
+    return Paths.get(
+      SystemProperty.getGlobalConfigurationPath(bundle.getName()).toString(), subPath
+    );
   }
 
   @Override

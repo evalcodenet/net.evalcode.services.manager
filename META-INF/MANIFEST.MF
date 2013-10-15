@@ -7,9 +7,7 @@ Bundle-Version: 0.1.0
 Bundle-Vendor: evalcode.net
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: bin/main/classes,
- lib/common/junit.jar,
- lib/common/mockito.jar
+Bundle-ClassPath: bin/main/classes
 Bundle-Activator: net.evalcode.services.manager.ComponentBundleManagerActivator
 Require-Bundle: net.evalcode.services.lib
 Export-Package: net.evalcode.services.manager.annotation,

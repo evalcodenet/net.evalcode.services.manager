@@ -143,7 +143,9 @@ public class ConfigurationEntityManager<T>
 
   public URL getResource() throws IOException
   {
-    return bundle.getConfiguration().getConfigurationFileResource(configuration.value(), true, true);
+    return bundle.getConfiguration().getConfigurationFileResource(
+      configuration.value(), true, true
+    );
   }
 
   public T getFallback()
@@ -159,8 +161,9 @@ public class ConfigurationEntityManager<T>
     catch(final InstantiationException | IllegalAccessException e)
     {
       throw new RuntimeException(String.format(
-        "Failed to instantiate configuration entity fallback [entity: {}, fallback: {}].",
-          clazz, fallback
+        "Failed to instantiate configuration entity fallback [entity: %1$s, fallback: %2$s].",
+          clazz,
+          fallback
       ));
     }
   }

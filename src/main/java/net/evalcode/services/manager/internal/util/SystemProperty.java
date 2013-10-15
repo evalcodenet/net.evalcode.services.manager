@@ -124,12 +124,19 @@ public enum SystemProperty
 
   public static Path getLocalConfigurationPath()
   {
-    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), NET_EVALCODE_SERVICES_ENVIRONMENT.get());
+    return Paths.get(
+      NET_EVALCODE_SERVICES_CONFIG.get(),
+      NET_EVALCODE_SERVICES_ENVIRONMENT.get()
+    );
   }
 
   public static Path getLocalConfigurationPath(final String subPath)
   {
-    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), NET_EVALCODE_SERVICES_ENVIRONMENT.get(), subPath);
+    return Paths.get(
+      NET_EVALCODE_SERVICES_CONFIG.get(),
+      NET_EVALCODE_SERVICES_ENVIRONMENT.get(),
+      subPath
+    );
   }
 
   public static Path getResourcesPath()
@@ -247,43 +254,50 @@ public enum SystemProperty
     final Properties globalProperties=new Properties();
     final Properties localProperties=new Properties();
 
-    try
+    final File globalPropertiesFile=new File(
+      System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key(),
+        NET_EVALCODE_SERVICES_CONFIG.defaultValue())+
+      File.separator+
+      PATH_DEFAULT+
+      File.separator+
+      FILE_PROPERTIES
+    );
+
+    if(globalPropertiesFile.exists())
     {
-      final File globalPropertiesFile=new File(
-        System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key(),
-          NET_EVALCODE_SERVICES_CONFIG.defaultValue())+
-        File.separator+
-        PATH_DEFAULT+
-        File.separator+
-        FILE_PROPERTIES
-      );
+      try(final FileInputStream globalPropertiesFileInputStream=new FileInputStream(globalPropertiesFile))
+      {
+        LOG.debug("Loading global properties [file: {}].", globalPropertiesFile.getAbsolutePath());
 
-      globalProperties.load(new FileInputStream(globalPropertiesFile));
-
-      LOG.debug("Loaded {}", globalPropertiesFile.getAbsolutePath());
+        globalProperties.load(globalPropertiesFileInputStream);
+      }
+      catch(final IOException e)
+      {
+        LOG.debug(e.getMessage(), e);
+      }
     }
-    catch(final IOException e)
-    {
-      LOG.debug(e.getMessage());
-    }
 
-    try
-    {
-      final File localPropertiesFile=new File(
-        System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key())+
-        File.separator+
-        System.getProperty(NET_EVALCODE_SERVICES_ENVIRONMENT.key(),
-          NET_EVALCODE_SERVICES_ENVIRONMENT.defaultValue())+
-        File.separator+
-        FILE_PROPERTIES
-      );
-      localProperties.load(new FileInputStream(localPropertiesFile));
+    final File localPropertiesFile=new File(
+      System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key())+
+      File.separator+
+      System.getProperty(NET_EVALCODE_SERVICES_ENVIRONMENT.key(),
+        NET_EVALCODE_SERVICES_ENVIRONMENT.defaultValue())+
+      File.separator+
+      FILE_PROPERTIES
+    );
 
-      LOG.debug("Loaded {}", localPropertiesFile.getAbsolutePath());
-    }
-    catch(final IOException e)
+    if(localPropertiesFile.exists())
     {
-      LOG.debug(e.getMessage());
+      try(final FileInputStream localPropertiesFileInputStream=new FileInputStream(localPropertiesFile))
+      {
+        LOG.debug("Loading local properties [file: {}].", localPropertiesFile.getAbsolutePath());
+
+        localProperties.load(localPropertiesFileInputStream);
+      }
+      catch(final IOException e)
+      {
+        LOG.debug(e.getMessage(), e);
+      }
     }
 
     for(final SystemProperty systemProperty : values())
