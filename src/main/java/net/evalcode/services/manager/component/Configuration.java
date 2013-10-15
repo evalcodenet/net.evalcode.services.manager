@@ -1,7 +1,9 @@
 package net.evalcode.services.manager.component;
 
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.Set;
 
 
@@ -20,7 +22,27 @@ public interface Configuration
 
   Set<String> keySet();
 
-  File getConfigurationFile(final String configurationFileName);
+  Path getResourcePath();
+  Path getResourcePath(String... subPath);
 
-  String getResourcePath();
+  Path getLocalConfigurationPath();
+  Path getLocalConfigurationPath(String... subPath);
+
+  Path getGlobalConfigurationPath();
+  Path getGlobalConfigurationPath(String... subPath);
+
+  URL getConfigurationFileResource(String configurationFileName)
+    throws IOException;
+
+  URL getConfigurationFileResource(String resourceName,
+    boolean searchGlobal, boolean searchBundleClasspath)
+      throws IOException;
+
+  void writeConfigurationFileResource(String resourceName, String content,
+    boolean createResource)
+      throws IOException;
+
+  String readConfigurationFileResource(String resourceName,
+    boolean searchGlobal)
+      throws IOException;
 }

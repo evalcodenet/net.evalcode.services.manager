@@ -55,7 +55,9 @@
   </target>
 
   <target name="clean.build">
+    <!--
     <delete dir=".clover" includeemptydirs="true"/>
+    -->
     <delete dir="${dir.build}" includeemptydirs="true"/>
   </target>
 
@@ -109,9 +111,16 @@
       <classpath refid="classpath.compile"/>
     </javac>
     <!-- instrument classes / unit tests -->
-    <clover-env/>
+    <!-- <clover-env/>
     <clover-instrument srcdir="${dir.src.main}" destdir="${dir.build.test.instrumented}" source="${source.version}" testsrcdir="${dir.src.test}" recordTestResults="true"/>
     <javac srcdir="${dir.build.test.instrumented}" destdir="${dir.build.test.classes}" source="${source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
+      <classpath refid="classpath.compile"/>
+      <classpath refid="classpath.net.evalcode.util.build.test"/>
+      <classpath refid="classpath.net.evalcode.util.build.common"/>
+    </javac>
+     -->
+    <javac srcdir="${dir.src.test}" destdir="${dir.build.test.classes}" source="${source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
+      <classpath path="${dir.build.main}"/>
       <classpath refid="classpath.compile"/>
       <classpath refid="classpath.net.evalcode.util.build.test"/>
       <classpath refid="classpath.net.evalcode.util.build.common"/>
@@ -123,6 +132,7 @@
   <target name="test.unit" depends="compile">
     <junit fork="true" haltonerror="false" haltonfailure="false" printsummary="true" showoutput="true" failureproperty="net.evalcode.util.build.test.unit.failures">
       <classpath path="${dir.build.test.classes}"/>
+      <classpath path="${dir.build.main}"/>
       <classpath refid="classpath.compile"/>
       <classpath refid="classpath.net.evalcode.util.build.test"/>
       <classpath refid="classpath.net.evalcode.util.build.common"/>
@@ -130,10 +140,17 @@
       <jvmarg value="-D${bundle.group}.log.root=/tmp"/>
       <formatter type="xml"/>
       <batchtest fork="true" todir="${dir.build}">
+        <fileset dir="${dir.src.test}">
+          <include name="**/*Test*"/>
+        </fileset>
+      </batchtest>
+      <!--
+      <batchtest fork="true" todir="${dir.build}">
         <fileset dir="${dir.build.test.instrumented}">
           <include name="**/*Test*"/>
         </fileset>
       </batchtest>
+      -->
     </junit>
   </target>
 
@@ -144,8 +161,10 @@
     report.checkstyle,
     report.findbugs,
     report.pmd,
-    report.cpd,
+    report.cpd"/>
+    <!--
     report.clover"/>
+     -->
 
 
   <!-- build jar: osgi bundle -->

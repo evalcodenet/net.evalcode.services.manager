@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
@@ -99,45 +101,45 @@ public enum SystemProperty
     return Environment.forKey(NET_EVALCODE_SERVICES_ENVIRONMENT.get());
   }
 
-  public static File getConfigurationFile(final String fileName)
+  public static Path getConfigurationFilePath(final String fileName)
   {
-    final File file=getLocalConfigurationFile(fileName);
+    final Path path=getLocalConfigurationPath(fileName);
+    final File file=path.toFile();
 
-    if(!file.exists())
-      return getGlobalConfigurationFile(fileName);
+    if(file.exists())
+      return path;
 
-    return file;
+    return getGlobalConfigurationPath(fileName);
   }
 
-  public static File getGlobalConfigurationFile(final String fileName)
+  public static Path getGlobalConfigurationPath()
   {
-    return new File(getGlobalConfigurationPath()+File.separator+fileName);
+    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), PATH_DEFAULT);
   }
 
-  public static File getLocalConfigurationFile(final String fileName)
+  public static Path getGlobalConfigurationPath(final String subPath)
   {
-    return new File(getLocalConfigurationPath()+File.separator+fileName);
+    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), PATH_DEFAULT, subPath);
   }
 
-  public static String getGlobalConfigurationPath()
+  public static Path getLocalConfigurationPath()
   {
-    return NET_EVALCODE_SERVICES_CONFIG.get()+File.separator+PATH_DEFAULT;
+    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), NET_EVALCODE_SERVICES_ENVIRONMENT.get());
   }
 
-  public static String getLocalConfigurationPath()
+  public static Path getLocalConfigurationPath(final String subPath)
   {
-    return NET_EVALCODE_SERVICES_CONFIG.get()+File.separator+
-      NET_EVALCODE_SERVICES_ENVIRONMENT.get();
+    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), NET_EVALCODE_SERVICES_ENVIRONMENT.get(), subPath);
   }
 
-  public static String getResourcesPath()
+  public static Path getResourcesPath()
   {
-    return NET_EVALCODE_SERVICES_RESOURCES.get();
+    return Paths.get(NET_EVALCODE_SERVICES_RESOURCES.get());
   }
 
-  public static String getResourcesPath(final String subPath)
+  public static Path getResourcesPath(final String... subPath)
   {
-    return NET_EVALCODE_SERVICES_RESOURCES.get()+File.separator+subPath;
+    return Paths.get(NET_EVALCODE_SERVICES_RESOURCES.get(), subPath);
   }
 
   public static Charset getCharset()

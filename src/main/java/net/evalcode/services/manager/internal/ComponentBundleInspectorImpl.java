@@ -1,12 +1,10 @@
 package net.evalcode.services.manager.internal;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.nio.charset.Charset;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +19,6 @@ import net.evalcode.services.manager.annotation.Configuration;
 import net.evalcode.services.manager.annotation.Property;
 import net.evalcode.services.manager.component.ComponentBundleInspector;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.misc.FileIO;
 import org.apache.commons.lang.StringUtils;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -42,7 +39,6 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
   // MEMBERS
   private final Bundle bundle;
   private final ComponentBundleManifest bundleManifest;
-  private final Charset charset=SystemProperty.getCharset();
 
 
   // CONSTRUCTION
@@ -129,21 +125,17 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
     return classes;
   }
 
-  void appendProperties(final Map<String, String> target, final File propertiesFile)
+  void appendProperties(final Map<String, String> target, final URL resource)
   {
     final Properties properties=new Properties();
 
     try
     {
-      properties.load(new FileInputStream(propertiesFile));
+      properties.load(resource.openStream());
     }
-    catch(final FileNotFoundException e)
+    catch(final IOException e)
     {
-      LOG.debug("Properties file not found [{}].", propertiesFile.getAbsolutePath());
-    }
-    catch(IOException e)
-    {
-      LOG.error("Unable to access properties file [{}].", propertiesFile.getAbsolutePath(), e);
+      LOG.warn("Unable to resolve properties for resource[{}].", resource.toExternalForm());
     }
 
     appendProperties(target, properties);
@@ -156,16 +148,6 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
       if(target.containsKey(key))
         target.put((String)key, (String)properties.get(key));
     }
-  }
-
-  String getConfigurationFilePath(final String configurationFilePath,
-    final String configurationFileName)
-  {
-    return configurationFilePath+
-      File.separator+
-      bundle.getSymbolicName()+
-      File.separator+
-      configurationFileName;
   }
 
   String classPathToName(final String packageName, final String classPath)
@@ -193,15 +175,6 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
 
   // OVERRIDES/IMPLEMENTS
   @Override
-  public Map<String, String> getBundleProperties()
-  {
-    /**
-     * TODO Cache
-     */
-    return getBundlePropertiesImpl();
-  }
-
-  @Override
   public Set<Class<?>> getExportedJpaEntities()
   {
     /**
@@ -225,85 +198,35 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
   }
 
   @Override
-  public String readConfigurationFile(final String configurationFileName,
-    final boolean searchGlobal)
-      throws FileNotFoundException
+  public Map<String, String> getBundleProperties()
   {
-    final File file=getConfigurationFile(configurationFileName, searchGlobal, false);
-    final FileIO fileIO=new FileIO(charset);
-
-    return fileIO.readFile(file);
+    /**
+     * TODO Cache
+     */
+    return getBundlePropertiesImpl();
   }
 
   @Override
-  public void writeConfigurationFile(final String configurationFileName,
-    final String content, final boolean createFile)
-      throws IOException
-  {
-    File file;
-
-    try
-    {
-      file=getConfigurationFile(configurationFileName, false, false);
-    }
-    catch(final FileNotFoundException e)
-    {
-      if(!createFile)
-        throw e;
-
-      file=new File(getLocalConfigurationFilePath(configurationFileName));
-    }
-
-    (new FileIO(charset)).writeFile(file, content, createFile);
-  }
-
-  @Override
-  public File getConfigurationFile(final String configurationFileName,
-    final boolean searchGlobal, final boolean searchBundleClasspath)
-      throws FileNotFoundException
-  {
-    // try local configuration path
-    File configurationFile=new File(getLocalConfigurationFilePath(configurationFileName));
-
-    if(searchGlobal && !configurationFile.exists())
-    {
-      // try global configuration path
-      configurationFile=new File(getGlobalConfigurationFilePath(configurationFileName));
-    }
-
-    if(searchBundleClasspath && !configurationFile.exists())
-    {
-      // try bundle resource path
-      if(null!=bundle.getResource(configurationFileName))
-        configurationFile=new File(bundle.getResource(configurationFileName).toExternalForm());
-    }
-
-    if(!configurationFile.exists())
-      throw new FileNotFoundException(configurationFileName);
-
-    return configurationFile;
-  }
-
-  @Override
-  public String getGlobalConfigurationFilePath(final String configurationFileName)
-  {
-    return getConfigurationFilePath(SystemProperty.getGlobalConfigurationPath(),
-      configurationFileName
-    );
-  }
-
-  @Override
-  public String getLocalConfigurationFilePath(final String configurationFileName)
-  {
-    return getConfigurationFilePath(SystemProperty.getLocalConfigurationPath(),
-      configurationFileName
-    );
-  }
-
-  @Override
-  public String getPropertiesFileName()
+  public String getBundlePropertiesFileName()
   {
     return bundle.getSymbolicName()+".properties";
+  }
+
+  @Override
+  public URL searchResourceInBundleClassPath(final String resourceFileName)
+  {
+    final URL resource=bundle.getResource(resourceFileName);
+
+    if(null!=resource)
+      return resource;
+
+    @SuppressWarnings("unchecked")
+    final Enumeration<URL> resources=bundle.findEntries("/", resourceFileName, true);
+
+    while(resources.hasMoreElements())
+      return resources.nextElement();
+
+    return null;
   }
 
 
@@ -330,14 +253,28 @@ public class ComponentBundleInspectorImpl implements ComponentBundleInspector
     }
 
     // overwrite from global configuration file
-    appendProperties(properties,
-      SystemProperty.getGlobalConfigurationFile(getPropertiesFileName())
-    );
+    try
+    {
+      appendProperties(properties,
+        SystemProperty.getGlobalConfigurationPath(getBundlePropertiesFileName()).toUri().toURL()
+      );
+    }
+    catch(final MalformedURLException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
 
     // overwrite from local configuration file
-    appendProperties(properties,
-      SystemProperty.getLocalConfigurationFile(getPropertiesFileName())
-    );
+    try
+    {
+      appendProperties(properties,
+        SystemProperty.getLocalConfigurationPath(getBundlePropertiesFileName()).toUri().toURL()
+      );
+    }
+    catch(final MalformedURLException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
 
     // overwrite from startup parameters
     appendProperties(properties, System.getProperties());

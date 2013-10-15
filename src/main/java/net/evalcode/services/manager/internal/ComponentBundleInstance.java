@@ -276,8 +276,9 @@ public class ComponentBundleInstance implements ComponentBundleInterface
 
     try
     {
+      // TODO Bundle-scoped persistence.xml.
       persistenceXml=MapperFactory.create(MapperFactory.Impl.JAXB).unmarshal(
-        PersistenceXml.class, SystemProperty.getConfigurationFile("persistence.xml")
+        PersistenceXml.class, SystemProperty.getConfigurationFilePath("persistence.xml").toFile()
       );
     }
     catch(final IOException e)

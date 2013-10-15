@@ -1,7 +1,8 @@
 package net.evalcode.services.manager.cache;
 
 
-import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.evalcode.services.manager.internal.util.SystemProperty;
@@ -27,6 +28,8 @@ import org.hibernate.cache.RegionFactory;
 import org.hibernate.cache.TimestampsRegion;
 import org.hibernate.cache.access.AccessType;
 import org.hibernate.cfg.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -37,6 +40,8 @@ import org.hibernate.cfg.Settings;
 public class EhCacheFactory implements RegionFactory
 {
   // PREDEFINED PROPERTIES
+  private static final Logger LOG=LoggerFactory.getLogger(EhCacheFactory.class);
+
   private static final AtomicInteger COUNT_REFERENCES=new AtomicInteger();
   private static final String NET_SF_EHCACHE_CONFIGURATION_RESOURCE_NAME=
     "net.sf.ehcache.configurationResourceName";
@@ -86,11 +91,14 @@ public class EhCacheFactory implements RegionFactory
       }
       else
       {
-        final File configurationFile=loadResource(configurationResourceName);
+        final URL configurationResource=resolveConfigurationResource(configurationResourceName);
 
-        final Configuration configuration=ConfigurationFactory.parseConfiguration(
-          configurationFile
-        );
+        Configuration configuration;
+
+        if(null==configurationResource)
+          configuration=ConfigurationFactory.parseConfiguration();
+        else
+          configuration=ConfigurationFactory.parseConfiguration(configurationResource);
 
         manager=CacheManager.create(configuration);
 
@@ -188,8 +196,18 @@ public class EhCacheFactory implements RegionFactory
     return cache;
   }
 
-  File loadResource(final String configurationResourceName)
+  // TODO Bundle-scoped cache configuration?
+  URL resolveConfigurationResource(final String configurationResourceName)
   {
-    return SystemProperty.getConfigurationFile(configurationResourceName);
+    try
+    {
+      return SystemProperty.getConfigurationFilePath(configurationResourceName).toUri().toURL();
+    }
+    catch(final MalformedURLException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
+
+    return null;
   }
 }

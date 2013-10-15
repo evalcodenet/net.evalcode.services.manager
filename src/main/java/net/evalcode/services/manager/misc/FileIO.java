@@ -3,8 +3,11 @@ package net.evalcode.services.manager.misc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import javax.inject.Inject;
@@ -40,17 +43,45 @@ public final class FileIO
   // ACCESSORS/MUTATORS
   public String readFile(final File file)
   {
+    try(final FileInputStream fileInputStream=new FileInputStream(file))
+    {
+      return readInputStream(fileInputStream);
+    }
+    catch(final FileNotFoundException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
+    catch(final IOException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
+
+    return null;
+  }
+
+  public String readResource(final URL url)
+  {
+    try(final InputStream inputStream=url.openStream())
+    {
+      return readInputStream(inputStream);
+    }
+    catch(final IOException e)
+    {
+      LOG.error(e.getMessage(), e);
+    }
+
+    return null;
+  }
+
+  public String readInputStream(final InputStream inputStream)
+  {
     final StringBuilder stringBuilder=new StringBuilder();
 
     final byte[] buffer=new byte[READ_BUFFER_SIZE];
     final ByteBuffer byteBuffer=ByteBuffer.allocateDirect(READ_BUFFER_SIZE);
 
-    FileInputStream inputStream=null;
-
     try
     {
-      inputStream=new FileInputStream(file);
-
       int read=0;
 
       while(0<=(read=inputStream.read(buffer)))
@@ -67,21 +98,6 @@ public final class FileIO
     {
       LOG.warn(e.getMessage(), e);
     }
-    finally
-    {
-      // TODO Unfortunately clover does not support try-with-resources yet.
-      if(null!=inputStream)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch(final IOException e)
-        {
-          LOG.warn(e.getMessage(), e);
-        }
-      }
-    }
 
     return stringBuilder.toString();
   }
@@ -93,7 +109,6 @@ public final class FileIO
       createFile(file);
 
     final ByteBuffer byteBuffer=charset.encode(content);
-
     final FileOutputStream outputStream=new FileOutputStream(file);
 
     try

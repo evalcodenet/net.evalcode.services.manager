@@ -1,9 +1,8 @@
 package net.evalcode.services.manager.configuration;
 
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import net.evalcode.services.manager.annotation.Configuration;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.misc.FileIO;
@@ -75,13 +74,13 @@ public class ConfigurationEntityManager<T>
   {
     LOG.debug("Invoke {}.", this);
 
-    File configurationFile=null;
+    URL configurationResource=null;
 
     try
     {
-      configurationFile=getFile();
+      configurationResource=getResource();
     }
-    catch(final FileNotFoundException e)
+    catch(final IOException e)
     {
       LOG.warn("Configuration entity file not found [entity: {}, file: {}].",
         new Object[] {clazz, configuration.value(), e}
@@ -95,29 +94,33 @@ public class ConfigurationEntityManager<T>
       }
     }
 
-    try
+    final FileIO fileIo=providerInjector.get().getInstance(FileIO.class);
+    String configurationFileContent=fileIo.readResource(configurationResource);
+
+    if(null!=configurationFileContent)
     {
-      final FileIO fileIo=providerInjector.get().getInstance(FileIO.class);
-
-      String configurationFileContent=fileIo.readFile(configurationFile);
-
       for(final String key : bundle.getConfiguration().keySet())
       {
         final String value=JSONObject.quote(bundle.getConfiguration().get(key));
 
-        configurationFileContent=StringUtils.replace(configurationFileContent, "${"+key+"}", value.substring(1, value.length()-1));
+        configurationFileContent=StringUtils.replace(
+          configurationFileContent, "${"+key+"}", value.substring(1, value.length()-1)
+        );
       }
+    }
 
+    try
+    {
       final T configuration=objectMapper.readValue(configurationFileContent, clazz);
 
       providerInjector.get().injectMembers(configuration);
 
       return configuration;
     }
-    catch(final IOException | NullPointerException e)
+    catch(final IOException e)
     {
       LOG.warn("Invalid configuration entity file [entity: {}, file: {}].",
-        new Object[] {clazz, configurationFile, e}
+        new Object[] {clazz, configurationResource, e}
       );
 
       if(null!=fallback)
@@ -131,16 +134,16 @@ public class ConfigurationEntityManager<T>
     return null;
   }
 
-  public void set(final T entity, final boolean createFile) throws IOException
+  public void set(final T entity, final boolean createResource) throws IOException
   {
-    bundle.getInspector().writeConfigurationFile(
-      configuration.value(), objectMapper.writeValueAsString(entity), createFile
+    bundle.getConfiguration().writeConfigurationFileResource(
+      configuration.value(), objectMapper.writeValueAsString(entity), createResource
     );
   }
 
-  public File getFile() throws FileNotFoundException
+  public URL getResource() throws IOException
   {
-    return bundle.getInspector().getConfigurationFile(configuration.value(), true, true);
+    return bundle.getConfiguration().getConfigurationFileResource(configuration.value(), true, true);
   }
 
   public T getFallback()
