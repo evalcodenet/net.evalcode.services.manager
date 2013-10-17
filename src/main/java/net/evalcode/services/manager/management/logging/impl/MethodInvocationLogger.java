@@ -1,6 +1,7 @@
 package net.evalcode.services.manager.management.logging.impl;
 
 
+import javax.inject.Singleton;
 import net.evalcode.services.manager.management.logging.Log;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author carsten.schipke@gmail.com
  */
+@Singleton
 public class MethodInvocationLogger implements MethodInterceptor
 {
   // OVERRIDES/IMPLEMENTS

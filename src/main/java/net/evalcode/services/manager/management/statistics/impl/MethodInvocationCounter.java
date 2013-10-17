@@ -1,6 +1,7 @@
 package net.evalcode.services.manager.management.statistics.impl;
 
 
+import javax.inject.Singleton;
 import net.evalcode.services.manager.management.statistics.Count;
 import net.evalcode.services.manager.management.statistics.Counter;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -15,6 +16,7 @@ import org.aopalliance.intercept.MethodInvocation;
  *
  * @author carsten.schipke@gmail.com
  */
+@Singleton
 public class MethodInvocationCounter implements MethodInterceptor
 {
   // OVERRIDES/IMPLEMENTS

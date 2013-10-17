@@ -98,6 +98,10 @@ public class EhCacheFactory implements RegionFactory
 
         manager=CacheManager.create(configuration);
 
+
+        for(final String name : CacheManager.getInstance().getCacheNames())
+          LOG.debug("cache: {}", name);
+
         COUNT_REFERENCES.incrementAndGet();
       }
 

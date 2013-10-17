@@ -8,9 +8,11 @@ import java.util.TimeZone;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import net.evalcode.services.manager.annotation.Cache;
 import net.evalcode.services.manager.configuration.ConfigurationEntityManager;
 import net.evalcode.services.manager.configuration.ConfigurationEntityProvider;
 import net.evalcode.services.manager.configuration.Environment;
+import net.evalcode.services.manager.internal.cache.MethodInvocationCache;
 import net.evalcode.services.manager.internal.persistence.EntityManagerFactoryProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
@@ -137,6 +139,9 @@ public class ServiceComponentModule extends AbstractModule
 
     bindInterceptor(Matchers.any(),
       Matchers.annotatedWith(Count.class), new MethodInvocationCounter());
+
+    bindInterceptor(Matchers.any(),
+      Matchers.annotatedWith(Cache.class), new MethodInvocationCache());
   }
 
   @Provides
