@@ -2,7 +2,6 @@ package net.evalcode.services.manager.internal;
 
 
 import javax.inject.Inject;
-import net.evalcode.services.manager.internal.spi.BundleEventHandler;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 
@@ -15,7 +14,7 @@ import org.osgi.framework.BundleEvent;
 public class StoppingBundleEventHandler implements BundleEventHandler
 {
   // MEMBERS
-  private final ComponentBundleManager componentBundleManager;
+  final ComponentBundleManager componentBundleManager;
 
 
   // CONSTRUCTION

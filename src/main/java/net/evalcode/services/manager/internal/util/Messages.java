@@ -53,7 +53,7 @@ public enum Messages
 
 
   // PREDEFINED PROPERTIES
-  private final ResourceBundle resourceBundle=ResourceBundle.getBundle(
+  final ResourceBundle resourceBundle=ResourceBundle.getBundle(
     "net.evalcode.services.manager.messages", SystemProperty.getLocale()
   );
 

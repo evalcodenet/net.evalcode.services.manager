@@ -2,11 +2,9 @@ package net.evalcode.services.manager.internal.persistence;
 
 
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.spi.PersistenceUnitTransactionType;
+import net.evalcode.services.manager.internal.persistence.PersistenceXml.PersistenceUnit;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.persistence.PersistenceXml;
-import net.evalcode.services.manager.persistence.PersistenceXml.PersistenceUnit;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.ejb.packaging.PersistenceMetadata;
 
@@ -19,13 +17,15 @@ import org.hibernate.ejb.packaging.PersistenceMetadata;
 public class PersistenceXmlMetadata extends PersistenceMetadata
 {
   // MEMBERS
-  private final AtomicReference<Properties> refProperties=new AtomicReference<>(null);
-  private final PersistenceXml xml;
+  final PersistenceXml xml;
+  volatile Properties properties=null;
 
 
   // CONSTRUCTION
   public PersistenceXmlMetadata(final PersistenceXml persistenceXml)
   {
+    super();
+
     this.xml=persistenceXml;
   }
 
@@ -49,8 +49,6 @@ public class PersistenceXmlMetadata extends PersistenceMetadata
   @Override
   public Properties getProps()
   {
-    final Properties properties=refProperties.get();
-
     if(null==properties)
     {
       final Properties persistenceProperties=new Properties();
@@ -58,10 +56,13 @@ public class PersistenceXmlMetadata extends PersistenceMetadata
       for(final PersistenceUnit.Properties.Property p : xml.persistenceUnit.properties.values)
         persistenceProperties.put(p.name, substituteSystemProperties(p.value));
 
-      if(refProperties.compareAndSet(properties, persistenceProperties))
-        return persistenceProperties;
+      synchronized(this)
+      {
+        if(null==properties)
+          properties=persistenceProperties;
 
-      return refProperties.get();
+        return properties;
+      }
     }
 
     return properties;

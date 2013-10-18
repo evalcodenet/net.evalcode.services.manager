@@ -1,7 +1,7 @@
 package net.evalcode.services.manager.component;
 
 
-import net.evalcode.services.manager.annotation.Service;
+import net.evalcode.services.manager.component.annotation.Service;
 
 
 /**

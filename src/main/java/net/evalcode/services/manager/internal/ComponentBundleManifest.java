@@ -12,7 +12,7 @@ import org.osgi.framework.Constants;
  *
  * @author carsten.schipke@gmail.com
  */
-public class ComponentBundleManifest
+class ComponentBundleManifest
 {
   /**
    * Header
@@ -47,7 +47,7 @@ public class ComponentBundleManifest
 
 
   // ACCESSORS/MUTATORS
-  public Set<String> getEntry(final Header header)
+  Set<String> getEntry(final Header header)
   {
     final Set<String> entries=new HashSet<String>();
     final Object headerObject=bundle.getHeaders().get(header.headerName);

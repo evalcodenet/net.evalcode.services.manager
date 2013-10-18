@@ -16,15 +16,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author carsten.schipke@gmail.com
  */
-public class ServiceRegistry
+class ServiceRegistry
 {
   // PREDEFINED PROPERTIES
-  private static final Logger LOG=LoggerFactory.getLogger(ServiceRegistry.class);
+  static final Logger LOG=LoggerFactory.getLogger(ServiceRegistry.class);
 
 
   // MEMBERS
-  private final ConcurrentMap<ServiceComponentInstance, Set<ServiceRegistration>> providers=
-    new ConcurrentHashMap<ServiceComponentInstance, Set<ServiceRegistration>>();
+  final ConcurrentMap<ServiceComponentInstance, Set<ServiceRegistration>> providers=
+    new ConcurrentHashMap<>();
 
 
   // ACCESSORS/MUTATORS

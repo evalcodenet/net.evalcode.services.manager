@@ -20,18 +20,23 @@ import com.google.inject.Injector;
 public class ComponentBundleManager
 {
   // PREDEFINED PROPERTIES
-  public static final String BUNDLE_NAME_OSGI="org.eclipse.osgi";
-  public static final String BUNDLE_NAME_MANAGER="net.evalcode.services.manager";
+  static final String BUNDLE_NAME_MANAGER="net.evalcode.services.manager";
+  static final String BUNDLE_NAME_OSGI="org.eclipse.osgi";
 
 
   // MEMBERS
-  private final ConcurrentMap<String, ComponentBundleInstance> componentBundles=
-    new ConcurrentHashMap<String, ComponentBundleInstance>();
+  final ConcurrentMap<String, ComponentBundleInstance> componentBundles=new ConcurrentHashMap<>();
+  final Injector injector;
+  final ServiceRegistry serviceRegistry;
 
+
+  // CONSTRUCTION
   @Inject
-  private Injector injector;
-  @Inject
-  private ServiceRegistry serviceRegistry;
+  ComponentBundleManager(final Injector injector, final ServiceRegistry serviceRegistry)
+  {
+    this.injector=injector;
+    this.serviceRegistry=serviceRegistry;
+  }
 
 
   // ACCESSORS/MUTATORS

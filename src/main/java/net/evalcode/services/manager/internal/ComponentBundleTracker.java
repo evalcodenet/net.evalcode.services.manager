@@ -3,7 +3,6 @@ package net.evalcode.services.manager.internal;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import net.evalcode.services.manager.internal.spi.BundleEventHandler;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
@@ -17,8 +16,7 @@ import org.osgi.util.tracker.BundleTrackerCustomizer;
 public class ComponentBundleTracker implements BundleTrackerCustomizer
 {
   // MEMBERS
-  private final ConcurrentMap<Integer, BundleEventHandler> bundleEventHandlers=
-    new ConcurrentHashMap<Integer, BundleEventHandler>();
+  final ConcurrentMap<Integer, BundleEventHandler> bundleEventHandlers=new ConcurrentHashMap<>();
 
 
   // ACCESSORS/MUTATORS

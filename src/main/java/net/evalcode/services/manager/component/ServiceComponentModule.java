@@ -8,19 +8,19 @@ import java.util.TimeZone;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import net.evalcode.services.manager.annotation.Cache;
-import net.evalcode.services.manager.configuration.ConfigurationEntityManager;
-import net.evalcode.services.manager.configuration.ConfigurationEntityProvider;
-import net.evalcode.services.manager.configuration.Environment;
-import net.evalcode.services.manager.internal.cache.MethodInvocationCache;
+import net.evalcode.services.manager.component.configuration.ConfigurationEntityManager;
+import net.evalcode.services.manager.component.configuration.ConfigurationEntityProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerFactoryProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.management.logging.Log;
-import net.evalcode.services.manager.management.logging.impl.MethodInvocationLogger;
-import net.evalcode.services.manager.management.statistics.Count;
-import net.evalcode.services.manager.management.statistics.impl.MethodInvocationCounter;
-import net.evalcode.services.manager.misc.FileIO;
+import net.evalcode.services.manager.service.cache.Cache;
+import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
+import net.evalcode.services.manager.service.cache.ioc.MethodInvocationCache;
+import net.evalcode.services.manager.service.logging.Log;
+import net.evalcode.services.manager.service.logging.ioc.MethodInvocationLogger;
+import net.evalcode.services.manager.service.statistics.Count;
+import net.evalcode.services.manager.service.statistics.ioc.MethodInvocationCounter;
+import net.evalcode.services.manager.util.io.FileIO;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,13 +48,13 @@ public class ServiceComponentModule extends AbstractModule
 
 
   // MEMBERS
-  private ComponentBundleInterface bundle;
+  ComponentBundleInterface componentBundle;
 
 
   // ACCESSORS/MUTATORS
   public void setComponentBundle(final ComponentBundleInterface componentBundle)
   {
-    this.bundle=componentBundle;
+    this.componentBundle=componentBundle;
   }
 
 
@@ -63,7 +63,9 @@ public class ServiceComponentModule extends AbstractModule
   @SuppressWarnings({"rawtypes", "unchecked"})
   protected void configure()
   {
-    final Configuration configuration=this.bundle.getConfiguration();
+    configureCommon();
+
+    final Configuration configuration=this.componentBundle.getConfiguration();
     final Set<String> configurationKeys=configuration.keySet();
 
     for(final String key : configurationKeys)
@@ -79,8 +81,48 @@ public class ServiceComponentModule extends AbstractModule
         });
     }
 
+    for(final Class<?> configurationEntityClazz : this.componentBundle.getConfigurationEntities())
+    {
+      final ConfigurationEntityManager configurationEntityManager=new ConfigurationEntityManager(
+        binder().getProvider(Injector.class),
+        provideObjectMapper(),
+        componentBundle,
+        configurationEntityClazz
+      );
+
+      bind(ConfigurationEntityManager.class)
+        .annotatedWith(Names.named(configurationEntityClazz.getName()))
+        .toInstance(configurationEntityManager);
+
+      bind(configurationEntityClazz)
+        .toProvider(new ConfigurationEntityProvider(configurationEntityManager));
+    }
+
+    bind(ComponentBundleInterface.class)
+      .toInstance(this.componentBundle);
+
+    bind(BundleContext.class)
+      .toInstance(this.componentBundle.getBundleContext());
+
+    for(final ServiceComponentInterface serviceComponent : this.componentBundle.getServiceComponents())
+    {
+      bind(ServiceComponentInterface.class)
+        .annotatedWith(Names.named(serviceComponent.getName()))
+        .toInstance(serviceComponent);
+    }
+
+    bind(EntityManagerFactory.class)
+      .toProvider(EntityManagerFactoryProvider.class)
+      .in(Singleton.class);
+
+    bind(EntityManager.class)
+      .toProvider(EntityManagerProvider.class);
+  }
+
+  protected void configureCommon()
+  {
     bind(Environment.class)
-      .toInstance(SystemProperty.getEnvironment());
+      .toInstance(Environment.current());
 
     bind(Locale.class)
       .annotatedWith(Names.named("net.evalcode.services.locale"))
@@ -97,51 +139,21 @@ public class ServiceComponentModule extends AbstractModule
     bind(FileIO.class)
       .in(Singleton.class);
 
-    for(final Class<?> configurationEntityClazz : this.bundle.getConfigurationEntities())
-    {
-      final ConfigurationEntityManager configurationEntityManager=new ConfigurationEntityManager(
-        binder().getProvider(Injector.class),
-        provideObjectMapper(),
-        bundle,
-        configurationEntityClazz
-      );
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Log.class),
+      new MethodInvocationLogger());
 
-      bind(ConfigurationEntityManager.class)
-        .annotatedWith(Names.named(configurationEntityClazz.getName()))
-        .toInstance(configurationEntityManager);
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Count.class),
+      new MethodInvocationCounter());
 
-      bind(configurationEntityClazz)
-        .toProvider(new ConfigurationEntityProvider(configurationEntityManager));
-    }
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Cache.class),
+      new MethodInvocationCache(getProvider(Injector.class)));
+  }
 
-    bind(ComponentBundleInterface.class)
-      .toInstance(this.bundle);
-
-    bind(BundleContext.class)
-      .toInstance(this.bundle.getBundleContext());
-
-    for(final ServiceComponentInterface serviceComponent : this.bundle.getServiceComponents())
-    {
-      bind(ServiceComponentInterface.class)
-        .annotatedWith(Names.named(serviceComponent.getName()))
-        .toInstance(serviceComponent);
-    }
-
-    bind(EntityManagerFactory.class)
-      .toProvider(EntityManagerFactoryProvider.class)
-      .in(Singleton.class);
-
-    bind(EntityManager.class)
-      .toProvider(EntityManagerProvider.class);
-
-    bindInterceptor(Matchers.any(),
-      Matchers.annotatedWith(Log.class), new MethodInvocationLogger());
-
-    bindInterceptor(Matchers.any(),
-      Matchers.annotatedWith(Count.class), new MethodInvocationCounter());
-
-    bindInterceptor(Matchers.any(),
-      Matchers.annotatedWith(Cache.class), new MethodInvocationCache());
+  @Provides
+  @Singleton
+  CacheServiceRegistry provideCacheServiceRegistry()
+  {
+    return CacheServiceRegistry.get();
   }
 
   @Provides

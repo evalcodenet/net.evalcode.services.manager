@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import net.evalcode.services.manager.component.Configuration;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.misc.FileIO;
+import net.evalcode.services.manager.util.io.FileIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +31,9 @@ public class ComponentBundleConfiguration implements Configuration
 
 
   // MEMBERS
-  private final ConcurrentMap<String, String> configuration=new ConcurrentHashMap<>();
-  private final Charset charset=SystemProperty.getCharset();
-  private final ComponentBundleInstance bundle;
+  final Charset charset=SystemProperty.getCharset();
+  final ConcurrentMap<String, String> configuration=new ConcurrentHashMap<>();
+  final ComponentBundleInstance bundle;
 
 
   // CONSTRUCTION

@@ -15,7 +15,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
-import net.evalcode.services.manager.configuration.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,21 +73,20 @@ public enum SystemProperty
 
 
   // PREDEFINED PROPERTIES
-  private static final String PATH_DEFAULT="default";
-  private static final String FILE_PROPERTIES="net.evalcode.services.properties";
-  private static final Logger LOG=LoggerFactory.getLogger(SystemProperty.class);
-  private static final CountDownLatch INITIALIZING=new CountDownLatch(2);
-  private static final ConcurrentMap<String, String> PROPERTIES=
-    new ConcurrentHashMap<String, String>();
+  static final String PATH_DEFAULT="default";
+  static final String FILE_PROPERTIES="net.evalcode.services.properties";
+  static final Logger LOG=LoggerFactory.getLogger(SystemProperty.class);
+  static final CountDownLatch INITIALIZING=new CountDownLatch(2);
+  static final ConcurrentMap<String, String> PROPERTIES=new ConcurrentHashMap<>();
 
 
   // MEMBERS
-  private final String key;
-  private final String defaultValue;
+  final String key;
+  final String defaultValue;
 
 
   // CONSTRUCTION
-  private SystemProperty(final String key, final String defaultValue)
+  SystemProperty(final String key, final String defaultValue)
   {
     this.key=key;
     this.defaultValue=defaultValue;
@@ -96,11 +94,6 @@ public enum SystemProperty
 
 
   // STATIC ACCESSORS
-  public static Environment getEnvironment()
-  {
-    return Environment.forKey(NET_EVALCODE_SERVICES_ENVIRONMENT.get());
-  }
-
   public static Path getConfigurationFilePath(final String fileName)
   {
     final Path path=getLocalConfigurationPath(fileName);

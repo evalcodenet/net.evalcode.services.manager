@@ -7,14 +7,9 @@ import javax.inject.Singleton;
 import javax.management.MBeanServer;
 import net.evalcode.services.manager.component.ServiceComponentModule;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.management.jmx.ComponentBundleManagerMXBeanImpl;
-import net.evalcode.services.manager.management.jmx.ServiceMBeanRegistry;
-import net.evalcode.services.manager.management.logging.Log;
-import net.evalcode.services.manager.management.logging.impl.MethodInvocationLogger;
-import net.evalcode.services.manager.management.statistics.Count;
-import net.evalcode.services.manager.management.statistics.impl.MethodInvocationCounter;
+import net.evalcode.services.manager.service.jmx.ComponentBundleManagerMXBeanImpl;
+import net.evalcode.services.manager.service.jmx.ServiceMBeanRegistry;
 import com.google.inject.Provider;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 
 
@@ -29,13 +24,16 @@ public class ComponentBundleManagerModule extends ServiceComponentModule
   @Override
   protected void configure()
   {
+    configureCommon();
+
     final Set<String> configurationKeys=SystemProperty.keySet();
 
     for(final String key : configurationKeys)
     {
       bind(String.class)
         .annotatedWith(Names.named(key))
-        .toProvider(new Provider<String>() {
+        .toProvider(new Provider<String>()
+        {
           @Override
           public String get()
           {
@@ -61,11 +59,5 @@ public class ComponentBundleManagerModule extends ServiceComponentModule
       .in(Singleton.class);
     bind(ComponentBundleManagerMXBeanImpl.class)
       .in(Singleton.class);
-
-    bindInterceptor(Matchers.any(),
-      Matchers.annotatedWith(Log.class), new MethodInvocationLogger());
-
-    bindInterceptor(Matchers.any(),
-      Matchers.annotatedWith(Count.class), new MethodInvocationCounter());
   }
 }

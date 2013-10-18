@@ -4,13 +4,13 @@ package net.evalcode.services.manager;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
 import javax.inject.Inject;
+import net.evalcode.services.manager.component.Environment;
 import net.evalcode.services.manager.internal.ComponentBundleManager;
 import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
 import net.evalcode.services.manager.internal.ComponentBundleTracker;
 import net.evalcode.services.manager.internal.StartingBundleEventHandler;
 import net.evalcode.services.manager.internal.StoppingBundleEventHandler;
 import net.evalcode.services.manager.internal.util.Messages;
-import net.evalcode.services.manager.internal.util.SystemProperty;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -29,20 +29,21 @@ import com.google.inject.Guice;
 public class ComponentBundleManagerActivator implements BundleActivator
 {
   // PREDEFINED PROPERTIES
-  private static final int MASK_TRACKED_BUNDLES=1023;
-  private static final Logger LOG=LoggerFactory.getLogger(ComponentBundleManagerActivator.class);
+  static final Logger LOG=LoggerFactory.getLogger(ComponentBundleManagerActivator.class);
+
+  static final int MASK_TRACKED_BUNDLES=1023;
 
 
   // MEMBERS
-  private final ComponentBundleTracker evalBundleTracker=new ComponentBundleTracker();
-  private BundleTracker bundleTracker;
+  final ComponentBundleTracker evalBundleTracker=new ComponentBundleTracker();
+  BundleTracker bundleTracker;
 
   @Inject
-  private ComponentBundleManager componentBundleManager;
+  ComponentBundleManager componentBundleManager;
   @Inject
-  private StoppingBundleEventHandler stoppingBundleEventHandler;
+  StoppingBundleEventHandler stoppingBundleEventHandler;
   @Inject
-  private StartingBundleEventHandler startingBundleEventHandler;
+  StartingBundleEventHandler startingBundleEventHandler;
 
 
   // OVERRIDES/IMPLEMENTS
@@ -58,7 +59,7 @@ public class ComponentBundleManagerActivator implements BundleActivator
 
     LOG.debug(Messages.STARTING.get());
 
-    Guice.createInjector(SystemProperty.getEnvironment().stage(),
+    Guice.createInjector(Environment.current().stage(),
       new ComponentBundleManagerModule()
     ).injectMembers(this);
 

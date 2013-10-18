@@ -13,7 +13,7 @@ import org.jvnet.inflector.Noun;
 public class PersistenceNamingStrategy extends ImprovedNamingStrategy
 {
   // PREDEFINED PROPERTIES
-  private static final long serialVersionUID=1L;
+  static final long serialVersionUID=1L;
 
 
   // OVERRIDES/IMPLEMENTS

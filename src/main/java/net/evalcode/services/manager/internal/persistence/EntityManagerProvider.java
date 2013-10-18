@@ -15,7 +15,7 @@ import com.google.inject.Provider;
 public class EntityManagerProvider implements Provider<EntityManager>
 {
   // MEMBERS
-  private final Provider<EntityManagerFactory> entityManagerFactoryProvider;
+  final Provider<EntityManagerFactory> entityManagerFactoryProvider;
 
 
   // CONSTRUCTION

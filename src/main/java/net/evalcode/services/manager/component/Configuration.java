@@ -15,10 +15,10 @@ import java.util.Set;
 public interface Configuration
 {
   // ACCESSORS/MUTATORS
-  String get(final String key);
-  String get(final String key, final String defaultValue);
+  String get(String key);
+  String get(String key, String defaultValue);
 
-  String set(final String key, final String value);
+  String set(String key, String value);
 
   Set<String> keySet();
 
@@ -34,15 +34,14 @@ public interface Configuration
   URL getConfigurationFileResource(String configurationFileName)
     throws IOException;
 
-  URL getConfigurationFileResource(String resourceName,
-    boolean searchGlobal, boolean searchBundleClasspath)
+  URL getConfigurationFileResource(String resourceName, boolean searchGlobal,
+    boolean searchBundleClasspath)
       throws IOException;
 
   void writeConfigurationFileResource(String resourceName, String content,
     boolean createResource)
       throws IOException;
 
-  String readConfigurationFileResource(String resourceName,
-    boolean searchGlobal)
-      throws IOException;
+  String readConfigurationFileResource(String resourceName, boolean searchGlobal)
+    throws IOException;
 }

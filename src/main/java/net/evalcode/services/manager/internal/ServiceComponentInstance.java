@@ -12,10 +12,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import net.evalcode.services.manager.annotation.Activate;
-import net.evalcode.services.manager.annotation.Deactivate;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.component.ServiceComponentInterface;
+import net.evalcode.services.manager.component.annotation.Activate;
+import net.evalcode.services.manager.component.annotation.Deactivate;
 import net.evalcode.services.manager.internal.util.Messages;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.osgi.framework.ServiceEvent;
@@ -45,21 +45,21 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
 
 
   // PREDEFINED PROPERTIES
-  private static final Logger LOG=LoggerFactory.getLogger(ServiceComponentInstance.class);
+  static final Logger LOG=LoggerFactory.getLogger(ServiceComponentInstance.class);
 
 
   // MEMBERS
   private final ComponentBundleInstance componentBundleInstance;
 
-  private final Class<?> clazz;
-  private final ServiceComponentInspector inspector;
-  private final LinkedBlockingQueue<Task> tasks=new LinkedBlockingQueue<Task>();
+  final LinkedBlockingQueue<Task> tasks=new LinkedBlockingQueue<Task>();
+  final ServiceComponentInspector inspector;
+  final Class<?> clazz;
 
-  private final List<ServiceRegistration> serviceRegistrations=
+  final List<ServiceRegistration> serviceRegistrations=
     new ArrayList<ServiceRegistration>();
-  private final ConcurrentMap<ServiceReference, ServiceComponentInstance> boundServiceReferences=
+  final ConcurrentMap<ServiceReference, ServiceComponentInstance> boundServiceReferences=
     new ConcurrentHashMap<ServiceReference, ServiceComponentInstance>();
-  private final Set<ServiceComponentInstance> boundServiceProviders=
+  final Set<ServiceComponentInstance> boundServiceProviders=
     new ConcurrentHashSet<ServiceComponentInstance>();
 
 
@@ -124,6 +124,13 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
   public Injector getInjector()
   {
     return componentBundleInstance.getComponentInjector(this);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T getInstance()
+  {
+    return (T)getInjector().getInstance(getType());
   }
 
   @Override
@@ -351,12 +358,5 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
   private Set<Class<?>> getRequestedServices()
   {
     return getInspector().getServiceConnectors().keySet();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T> T getInstance()
-  {
-    return (T)getInjector().getInstance(getType());
   }
 }

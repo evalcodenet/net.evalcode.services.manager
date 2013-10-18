@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import net.evalcode.services.manager.annotation.Bind;
-import net.evalcode.services.manager.annotation.Component;
-import net.evalcode.services.manager.annotation.Service;
-import net.evalcode.services.manager.annotation.Unbind;
 import net.evalcode.services.manager.component.ServiceComponentModule;
+import net.evalcode.services.manager.component.annotation.Bind;
+import net.evalcode.services.manager.component.annotation.Component;
+import net.evalcode.services.manager.component.annotation.Service;
+import net.evalcode.services.manager.component.annotation.Unbind;
 import com.google.common.collect.Sets;
 
 
@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 class ServiceComponentInspector
 {
   // MEMBERS
-  private final Class<?> clazz;
+  final Class<?> clazz;
 
 
   // CONSTRUCTION

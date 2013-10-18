@@ -14,8 +14,8 @@ import com.google.inject.Module;
 public class ManagerBundleInstance extends ComponentBundleInstance
 {
   // MEMBERS
-  private final Injector injector;
-  private final Module module=new ComponentBundleManagerModule();
+  final Module module=new ComponentBundleManagerModule();
+  final Injector injector;
 
 
   // CONSTRUCTION

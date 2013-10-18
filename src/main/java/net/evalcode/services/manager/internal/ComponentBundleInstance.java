@@ -19,10 +19,10 @@ import net.evalcode.services.manager.component.Configuration;
 import net.evalcode.services.manager.component.ServiceComponentInterface;
 import net.evalcode.services.manager.component.ServiceComponentModule;
 import net.evalcode.services.manager.internal.persistence.PersistenceNamingStrategy;
+import net.evalcode.services.manager.internal.persistence.PersistenceXml;
 import net.evalcode.services.manager.internal.persistence.PersistenceXmlMetadata;
 import net.evalcode.services.manager.internal.util.Messages;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.persistence.PersistenceXml;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -42,28 +42,25 @@ import net.evalcode.javax.xml.bind.MapperFactory;
 public class ComponentBundleInstance implements ComponentBundleInterface
 {
   // PREDEFINED PROPERTIES
-  private static final Logger LOG=LoggerFactory.getLogger(ComponentBundleInstance.class);
+  static final Logger LOG=LoggerFactory.getLogger(ComponentBundleInstance.class);
 
 
   // MEMBERS
-  private final Bundle bundle;
-  private final ComponentBundleInspectorImpl inspector;
-  private final ComponentBundleManager componentBundleManager;
-  private final ComponentBundleConfiguration configuration;
+  final Bundle bundle;
+  final ComponentBundleInspectorImpl inspector;
+  final ComponentBundleManager componentBundleManager;
+  final ComponentBundleConfiguration configuration;
 
-  private final Set<ServiceComponentInstance> componentInstances=
-    new HashSet<ServiceComponentInstance>();
+  final Set<ServiceComponentInstance> componentInstances=new HashSet<>();
 
-  private final Map<Class<? extends Module>, Module> componentModules=
-    new HashMap<Class<? extends Module>, Module>();
-  private final Map<Class<? extends Module>, Injector> componentInjectors=
-    new HashMap<Class<? extends Module>, Injector>();
+  final Map<Class<? extends Module>, Module> componentModules=new HashMap<>();
+  final Map<Class<? extends Module>, Injector> componentInjectors=new HashMap<>();
 
-  private final ExecutorService componentExecutor=Executors.newCachedThreadPool();
-  private final List<Future<Void>> componentFutures=new ArrayList<Future<Void>>();
+  final ExecutorService componentExecutor=Executors.newCachedThreadPool();
+  final List<Future<Void>> componentFutures=new ArrayList<>();
 
-  private EntityManagerFactory entityManagerFactory;
-  private Ejb3Configuration entityManagerConfiguration;
+  EntityManagerFactory entityManagerFactory;
+  Ejb3Configuration entityManagerConfiguration;
 
 
   // CONSTRUCTION

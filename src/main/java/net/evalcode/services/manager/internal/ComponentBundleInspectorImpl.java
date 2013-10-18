@@ -14,10 +14,10 @@ import java.util.Set;
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import net.evalcode.services.manager.annotation.Component;
-import net.evalcode.services.manager.annotation.Configuration;
-import net.evalcode.services.manager.annotation.Property;
 import net.evalcode.services.manager.component.ComponentBundleInspector;
+import net.evalcode.services.manager.component.annotation.Component;
+import net.evalcode.services.manager.component.annotation.Configuration;
+import net.evalcode.services.manager.component.annotation.Property;
 import net.evalcode.services.manager.internal.util.SystemProperty;
 import org.apache.commons.lang.StringUtils;
 import org.osgi.framework.Bundle;
@@ -33,12 +33,12 @@ import org.slf4j.LoggerFactory;
 public class ComponentBundleInspectorImpl implements ComponentBundleInspector
 {
   // PREDEFINED PROPERTIES
-  private static final Logger LOG=LoggerFactory.getLogger(ComponentBundleInspectorImpl.class);
+  static final Logger LOG=LoggerFactory.getLogger(ComponentBundleInspectorImpl.class);
 
 
   // MEMBERS
-  private final Bundle bundle;
-  private final ComponentBundleManifest bundleManifest;
+  final Bundle bundle;
+  final ComponentBundleManifest bundleManifest;
 
 
   // CONSTRUCTION
