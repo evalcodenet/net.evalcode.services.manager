@@ -15,6 +15,9 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +99,12 @@ public enum SystemProperty
   // STATIC ACCESSORS
   public static Path getConfigurationFilePath(final String fileName)
   {
+    final Path rawPath=Paths.get(fileName);
+    final File rawFile=rawPath.toFile();
+
+    if(rawFile.exists())
+      return rawPath;
+
     final Path path=getLocalConfigurationPath(fileName);
     final File file=path.toFile();
 
@@ -243,10 +252,26 @@ public enum SystemProperty
   {
     INITIALIZING.countDown();
 
-    final Set<String> keys=new HashSet<String>();
-    final Properties globalProperties=new Properties();
-    final Properties localProperties=new Properties();
 
+    // load default values
+    final Set<String> keys=new HashSet<String>();
+
+    for(final SystemProperty systemProperty : values())
+    {
+      keys.add(systemProperty.key);
+
+      if(null!=systemProperty.defaultValue)
+      {
+        LOG.debug("Initializing default property [name: {}, default-value: {}]",
+          systemProperty.key, systemProperty.defaultValue
+        );
+
+        PROPERTIES.put(systemProperty.key, systemProperty.defaultValue);
+      }
+    }
+
+
+    // load global properties
     final File globalPropertiesFile=new File(
       System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key(),
         NET_EVALCODE_SERVICES_CONFIG.defaultValue())+
@@ -255,6 +280,8 @@ public enum SystemProperty
       File.separator+
       FILE_PROPERTIES
     );
+
+    final Properties globalProperties=new Properties();
 
     if(globalPropertiesFile.exists())
     {
@@ -271,6 +298,17 @@ public enum SystemProperty
       }
     }
 
+    for(final Object key : globalProperties.keySet())
+    {
+      LOG.debug("Initializing global property [name: {}, value: {}]",
+        key, globalProperties.get(key)
+      );
+
+      PROPERTIES.put((String)key, (String)globalProperties.get(key));
+    }
+
+
+    // load local properties
     final File localPropertiesFile=new File(
       System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key())+
       File.separator+
@@ -279,6 +317,8 @@ public enum SystemProperty
       File.separator+
       FILE_PROPERTIES
     );
+
+    final Properties localProperties=new Properties();
 
     if(localPropertiesFile.exists())
     {
@@ -295,50 +335,39 @@ public enum SystemProperty
       }
     }
 
-    for(final SystemProperty systemProperty : values())
-    {
-      keys.add(systemProperty.key);
-
-      if(null!=systemProperty.defaultValue)
-      {
-        LOG.debug("Initialize system property [name: {}, default-value: {}]",
-          systemProperty.key, systemProperty.defaultValue
-        );
-
-        PROPERTIES.put(systemProperty.key, systemProperty.defaultValue);
-      }
-    }
-
-    for(final Object key : globalProperties.keySet())
-    {
-      LOG.debug("Override system property with global configuration [name: {}, value: {}]",
-        key, globalProperties.get(key)
-      );
-
-      PROPERTIES.put((String)key, (String)globalProperties.get(key));
-    }
-
     for(final Object key : localProperties.keySet())
     {
-      LOG.debug("Override system property with local configuration [name: {}, value: {}]",
+      LOG.debug("Initializing local property [name: {}, value: {}]",
         key, globalProperties.get(key)
       );
 
       PROPERTIES.put((String)key, (String)localProperties.get(key));
     }
 
+
+    // load system properties defined on startup/cli
     for(final String key : System.getProperties().stringPropertyNames())
     {
-      if(PROPERTIES.containsKey(key))
-      {
-        final String value=System.getProperty(key);
+      final String value=System.getProperty(key);
 
-        LOG.debug("Override system property with cli parameter [name: {}, value: {}]",
-          key, value
-        );
+      LOG.debug("Initializing system property [name: {}, value: {}]",
+        key, value
+      );
 
-        PROPERTIES.put(key, value);
-      }
+      PROPERTIES.put(key, value);
+    }
+
+
+    // resolve recursive references
+    for(final String key : PROPERTIES.keySet())
+      PROPERTIES.put(key, substituteProperties(PROPERTIES.get(key)));
+
+
+    // (re-)populate resolved system properties for 3rd party libraries etc.
+    for(final String key : PROPERTIES.keySet())
+    {
+      LOG.debug("Populating system property [name: {}, value: {}]", key, PROPERTIES.get(key));
+      System.setProperty(key, PROPERTIES.get(key));
     }
 
     INITIALIZING.countDown();
@@ -369,5 +398,22 @@ public enum SystemProperty
     return String.format("key: %1$s, value: %2$s, defaultValue: %3$s",
       key(), get(key()), defaultValue()
     );
+  }
+
+
+  // HELPERS
+  static String substituteProperties(final String value)
+  {
+    final Matcher matcher=Pattern.compile("\\$\\{(?<property>[\\w.]+)\\}", Pattern.CASE_INSENSITIVE).matcher(value);
+
+    if(matcher.find())
+    {
+      final String property=matcher.group("property");
+
+      if(PROPERTIES.containsKey(property))
+        return substituteProperties(StringUtils.replace(value, "${"+property+"}", PROPERTIES.get(property)));
+    }
+
+    return value;
   }
 }

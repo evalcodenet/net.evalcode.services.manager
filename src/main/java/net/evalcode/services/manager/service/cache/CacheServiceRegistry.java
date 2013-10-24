@@ -4,6 +4,7 @@ package net.evalcode.services.manager.service.cache;
 import javax.inject.Singleton;
 import net.evalcode.services.manager.component.annotation.Bind;
 import net.evalcode.services.manager.component.annotation.Component;
+import net.evalcode.services.manager.component.annotation.Property;
 import net.evalcode.services.manager.component.annotation.Unbind;
 import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
 import net.evalcode.services.manager.service.cache.ehcache.internal.EhcacheCacheManagerFactory;
@@ -20,7 +21,9 @@ import org.slf4j.LoggerFactory;
  * @author carsten.schipke@gmail.com
  */
 @Singleton
-@Component(module=ComponentBundleManagerModule.class)
+@Component(module=ComponentBundleManagerModule.class, properties={
+  @Property(name="net.evalcode.services.cache.config", defaultValue="cache.xml")
+})
 public class CacheServiceRegistry
 {
   // PREDEFINED PROPERTIES

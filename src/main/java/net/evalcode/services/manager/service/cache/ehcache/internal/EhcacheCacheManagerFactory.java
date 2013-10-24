@@ -18,13 +18,15 @@ public class EhcacheCacheManagerFactory
 {
   // PREDEFINED PROPERTIES
   static final Logger LOG=LoggerFactory.getLogger(EhcacheCacheManagerFactory.class);
-
-  static final String NET_SF_EHCACHE_CONFIGURATION_RESOURCE_NAME=
-    "net.sf.ehcache.configurationResourceName";
   /**
    * @internal
    */
   static final EhcacheCacheManagerFactory INSTANCE=new EhcacheCacheManagerFactory();
+
+  /**
+   * FIXME Inject component properties.
+   */
+  static final String CONFIG="net.evalcode.services.cache.config";
 
 
   // MEMBERS
@@ -50,9 +52,7 @@ public class EhcacheCacheManagerFactory
     if(null==cacheManager)
     {
       // FIXME Go through component configuration.
-      final String configurationResourceName=System.getProperty(
-        NET_SF_EHCACHE_CONFIGURATION_RESOURCE_NAME
-      );
+      final String configurationResourceName=SystemProperty.get(CONFIG);
 
       CacheManager newCacheManager;
 
