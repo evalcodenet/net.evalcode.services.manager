@@ -48,13 +48,13 @@ public class ServiceComponentModule extends AbstractModule
 
 
   // MEMBERS
-  ComponentBundleInterface componentBundle;
+  ComponentBundleInterface bundle;
 
 
   // ACCESSORS/MUTATORS
   public void setComponentBundle(final ComponentBundleInterface componentBundle)
   {
-    this.componentBundle=componentBundle;
+    this.bundle=componentBundle;
   }
 
 
@@ -65,7 +65,7 @@ public class ServiceComponentModule extends AbstractModule
   {
     configureCommon();
 
-    final Configuration configuration=this.componentBundle.getConfiguration();
+    final Configuration configuration=this.bundle.getConfiguration();
     final Set<String> configurationKeys=configuration.keySet();
 
     for(final String key : configurationKeys)
@@ -81,12 +81,12 @@ public class ServiceComponentModule extends AbstractModule
         });
     }
 
-    for(final Class<?> configurationEntityClazz : this.componentBundle.getConfigurationEntities())
+    for(final Class<?> configurationEntityClazz : this.bundle.getConfigurationEntities())
     {
       final ConfigurationEntityManager configurationEntityManager=new ConfigurationEntityManager(
         binder().getProvider(Injector.class),
         provideObjectMapper(),
-        componentBundle,
+        bundle,
         configurationEntityClazz
       );
 
@@ -99,12 +99,12 @@ public class ServiceComponentModule extends AbstractModule
     }
 
     bind(ComponentBundleInterface.class)
-      .toInstance(this.componentBundle);
+      .toInstance(this.bundle);
 
     bind(BundleContext.class)
-      .toInstance(this.componentBundle.getBundleContext());
+      .toInstance(this.bundle.getBundleContext());
 
-    for(final ServiceComponentInterface serviceComponent : this.componentBundle.getServiceComponents())
+    for(final ServiceComponentInterface serviceComponent : this.bundle.getServiceComponents())
     {
       bind(ServiceComponentInterface.class)
         .annotatedWith(Names.named(serviceComponent.getName()))

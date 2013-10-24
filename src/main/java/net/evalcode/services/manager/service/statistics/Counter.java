@@ -21,7 +21,7 @@ public final class Counter
 
 
   // CONSTRUCTION
-  Counter()
+  private Counter()
   {
     super();
   }

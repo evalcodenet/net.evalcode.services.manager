@@ -7,7 +7,6 @@ import net.evalcode.services.manager.component.annotation.Component;
 import net.evalcode.services.manager.component.annotation.Property;
 import net.evalcode.services.manager.component.annotation.Unbind;
 import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
-import net.evalcode.services.manager.service.cache.ehcache.internal.EhcacheCacheManagerFactory;
 import net.evalcode.services.manager.service.cache.spi.CacheService;
 import net.evalcode.services.manager.service.logging.Log;
 import org.eclipse.jetty.util.ConcurrentHashSet;

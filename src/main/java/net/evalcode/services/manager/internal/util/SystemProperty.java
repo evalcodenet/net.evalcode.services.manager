@@ -404,14 +404,20 @@ public enum SystemProperty
   // HELPERS
   static String substituteProperties(final String value)
   {
-    final Matcher matcher=Pattern.compile("\\$\\{(?<property>[\\w.]+)\\}", Pattern.CASE_INSENSITIVE).matcher(value);
+    final Matcher matcher=Pattern
+      .compile("\\$\\{(?<property>[\\w.]+)\\}", Pattern.CASE_INSENSITIVE)
+      .matcher(value);
 
     if(matcher.find())
     {
       final String property=matcher.group("property");
 
       if(PROPERTIES.containsKey(property))
-        return substituteProperties(StringUtils.replace(value, "${"+property+"}", PROPERTIES.get(property)));
+      {
+        return substituteProperties(StringUtils.replace(
+          value, "${"+property+"}", PROPERTIES.get(property)
+        ));
+      }
     }
 
     return value;
