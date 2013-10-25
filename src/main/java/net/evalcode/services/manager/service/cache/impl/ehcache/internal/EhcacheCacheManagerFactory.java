@@ -1,4 +1,4 @@
-package net.evalcode.services.manager.service.cache.ehcache.internal;
+package net.evalcode.services.manager.service.cache.impl.ehcache.internal;
 
 
 import java.net.MalformedURLException;
@@ -19,14 +19,13 @@ public class EhcacheCacheManagerFactory
   // PREDEFINED PROPERTIES
   static final Logger LOG=LoggerFactory.getLogger(EhcacheCacheManagerFactory.class);
   /**
-   * @internal
-   */
-  static final EhcacheCacheManagerFactory INSTANCE=new EhcacheCacheManagerFactory();
-
-  /**
    * FIXME Inject component properties.
    */
   static final String CONFIG="net.evalcode.services.cache.config";
+  /**
+   * @internal
+   */
+  static final EhcacheCacheManagerFactory INSTANCE=new EhcacheCacheManagerFactory();
 
 
   // MEMBERS

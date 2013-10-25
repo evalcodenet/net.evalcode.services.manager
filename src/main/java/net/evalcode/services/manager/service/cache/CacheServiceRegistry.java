@@ -1,15 +1,18 @@
 package net.evalcode.services.manager.service.cache;
 
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.inject.Singleton;
 import net.evalcode.services.manager.component.annotation.Bind;
 import net.evalcode.services.manager.component.annotation.Component;
 import net.evalcode.services.manager.component.annotation.Property;
 import net.evalcode.services.manager.component.annotation.Unbind;
 import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
+import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCacheManagerFactory;
+import net.evalcode.services.manager.service.cache.spi.Cache;
 import net.evalcode.services.manager.service.cache.spi.CacheService;
 import net.evalcode.services.manager.service.logging.Log;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +34,7 @@ public class CacheServiceRegistry
 
 
   // MEMBERS
-  final ConcurrentHashSet<CacheService<?>> cacheServices=new ConcurrentHashSet<>();
+  final Queue<CacheService<?>> cacheServices=new ConcurrentLinkedQueue<>();
 
 
   // CONSTRUCTION
@@ -61,27 +64,47 @@ public class CacheServiceRegistry
   @Bind
   public void bind(final CacheService<?> cacheService)
   {
-    LOG.info("Binding cache service: {}", cacheService);
-    cacheServices.add(cacheService);
+    LOG.debug("Binding cache service: {}", cacheService);
+
+    cacheServices.offer(cacheService);
   }
 
   @Log
   @Unbind
   public void unbind(final CacheService<?> cacheService)
   {
-    LOG.info("Unbinding cache service: {}", cacheService);
+    LOG.debug("Unbinding cache service: {}", cacheService);
+
     cacheServices.remove(cacheService);
   }
 
-  @Log
-  public CacheService<?> lookup(final String name)
-  {
-    for(final CacheService<?> cacheService : cacheServices)
-    {
-      if(cacheService.hasCache(name))
-        return cacheService;
-    }
 
-    return null;
+  @Log
+  public Cache<?> cacheForRegion(final String regionName)
+  {
+    return cacheServiceForRegion(regionName).cache(regionName);
+  }
+
+  @Log
+  public Cache<?> cacheForRegion(final String regionName, final String defaultConfig)
+  {
+    return cacheServiceForRegion(regionName).cache(regionName, defaultConfig);
+  }
+
+
+  @Log
+  public CacheService<?> cacheServiceForRegion(final String regionName)
+  {
+    if(regionName.isEmpty())
+      return cacheServices.peek();
+
+    /**
+     * TODO Count votes for responsibility.
+     *
+     * for(final CacheService<?> cacheService : cacheServices)
+     *   cacheService.vote(regionName)
+     */
+
+    return cacheServices.peek();
   }
 }

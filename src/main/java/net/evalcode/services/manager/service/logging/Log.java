@@ -33,7 +33,7 @@ public @interface Log
   /**
    * @return Log Level
    */
-  Level level() default Level.INFO;
+  Level level() default Level.DEBUG;
 
 
   /**

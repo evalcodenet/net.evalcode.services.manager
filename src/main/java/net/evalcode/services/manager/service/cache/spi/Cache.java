@@ -18,6 +18,4 @@ public interface Cache<T>
 
   void remove(Object key);
   void removeAll();
-
-  T getImpl();
 }
