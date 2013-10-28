@@ -17,6 +17,7 @@ public interface CacheService<T>
   Cache<T> cache(String regionName, String defaultConfig);
 
   boolean cacheExists(String regionName);
+  Cache<T> cacheCreate(String regionName, String defaultConfig);
 
   int vote(String regionName);
 }

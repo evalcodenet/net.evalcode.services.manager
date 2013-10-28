@@ -13,8 +13,8 @@ import net.evalcode.services.manager.component.configuration.ConfigurationEntity
 import net.evalcode.services.manager.internal.persistence.EntityManagerFactoryProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
-import net.evalcode.services.manager.service.cache.Cache;
 import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
+import net.evalcode.services.manager.service.cache.annotation.Cache;
 import net.evalcode.services.manager.service.cache.ioc.MethodInvocationCache;
 import net.evalcode.services.manager.service.logging.Log;
 import net.evalcode.services.manager.service.logging.ioc.MethodInvocationLogger;
@@ -22,8 +22,6 @@ import net.evalcode.services.manager.service.statistics.Count;
 import net.evalcode.services.manager.service.statistics.ioc.MethodInvocationCounter;
 import net.evalcode.services.manager.util.io.FileIO;
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
@@ -32,6 +30,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
+import com.google.inject.Stage;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 
@@ -43,10 +42,6 @@ import com.google.inject.name.Names;
  */
 public class ServiceComponentModule extends AbstractModule
 {
-  // PREDEFINED PROPERTIES
-  static final Logger LOG=LoggerFactory.getLogger(ServiceComponentModule.class);
-
-
   // MEMBERS
   ComponentBundleInterface bundle;
 
@@ -139,14 +134,17 @@ public class ServiceComponentModule extends AbstractModule
     bind(FileIO.class)
       .in(Singleton.class);
 
-    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Log.class),
-      new MethodInvocationLogger());
-
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Count.class),
       new MethodInvocationCounter());
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Cache.class),
       new MethodInvocationCache(getProvider(Injector.class)));
+
+    if(Stage.DEVELOPMENT.equals(currentStage()))
+    {
+      bindInterceptor(Matchers.any(), Matchers.annotatedWith(Log.class),
+        new MethodInvocationLogger());
+    }
   }
 
   @Provides

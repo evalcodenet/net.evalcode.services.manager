@@ -49,32 +49,15 @@ public class EhcacheCacheService implements CacheService<Ehcache>
         final Ehcache ehcache=cacheManager.getEhcache(regionName);
 
         final Cache<Ehcache> cacheNew=new EhcacheCache(ehcache);
-        final Cache<Ehcache> cachePrev=caches.putIfAbsent(regionName, cacheNew);
+        final Cache<Ehcache> cacheExisting=caches.putIfAbsent(regionName, cacheNew);
 
-        if(null==cachePrev)
+        if(null==cacheExisting)
           return cacheNew;
 
-        return cachePrev;
+        return cacheExisting;
       }
 
-      CacheConfiguration cacheConfiguration=null;
-
-      if(cacheManager.cacheExists(defaultConfig))
-        cacheConfiguration=cacheManager.getCache(defaultConfig).getCacheConfiguration();
-      else if(cacheManager.cacheExists(CacheManager.DEFAULT_NAME))
-        cacheConfiguration=cacheManager.getConfiguration().getDefaultCacheConfiguration();
-
-      cacheConfiguration.setName(regionName);
-
-      final Ehcache ehcache=new net.sf.ehcache.Cache(cacheConfiguration);
-
-      final Cache<Ehcache> cacheNew=new EhcacheCache(ehcache);
-      final Cache<Ehcache> cachePrev=caches.putIfAbsent(regionName, cacheNew);
-
-      if(null==cachePrev)
-        return cacheNew;
-
-      return cachePrev;
+      return cacheCreate(regionName, defaultConfig);
     }
 
     return cache;
@@ -90,5 +73,33 @@ public class EhcacheCacheService implements CacheService<Ehcache>
   public int vote(final String regionName)
   {
     return 10;
+  }
+
+  @Override
+  public Cache<Ehcache> cacheCreate(final String regionName, final String defaultConfig)
+  {
+    final net.sf.ehcache.Cache defaultCache=cacheManager.getCache(defaultConfig);
+
+    if(null==defaultCache)
+    {
+      throw new IllegalArgumentException(String.format(
+        "Unable to resolve default cache configuration for region [region: %s, default: %s].",
+          regionName, defaultConfig
+      ));
+    }
+
+    final CacheConfiguration configuration=defaultCache.getCacheConfiguration();
+    configuration.setName(regionName);
+
+    final net.sf.ehcache.Cache ehcache=new net.sf.ehcache.Cache(configuration);
+    final Ehcache ehcacheConcrete=cacheManager.addCacheIfAbsent(ehcache);
+
+    final Cache<Ehcache> cacheNew=new EhcacheCache(ehcacheConcrete);
+    final Cache<Ehcache> cacheExisting=caches.putIfAbsent(regionName, cacheNew);
+
+    if(null==cacheExisting)
+      return cacheNew;
+
+    return cacheExisting;
   }
 }

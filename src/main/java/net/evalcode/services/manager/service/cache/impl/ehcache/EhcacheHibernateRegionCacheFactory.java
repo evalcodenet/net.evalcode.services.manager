@@ -22,8 +22,6 @@ import org.hibernate.cache.RegionFactory;
 import org.hibernate.cache.TimestampsRegion;
 import org.hibernate.cache.access.AccessType;
 import org.hibernate.cfg.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,10 +31,6 @@ import org.slf4j.LoggerFactory;
  */
 public class EhcacheHibernateRegionCacheFactory implements RegionFactory
 {
-  // PREDEFINED PROPERTIES
-  static final Logger LOG=LoggerFactory.getLogger(EhcacheHibernateRegionCacheFactory.class);
-
-
   // MEMBERS
   private final EhcacheAccessStrategyFactory accessStrategyFactory=
     new NonstopAccessStrategyFactory(new EhcacheAccessStrategyFactoryImpl());

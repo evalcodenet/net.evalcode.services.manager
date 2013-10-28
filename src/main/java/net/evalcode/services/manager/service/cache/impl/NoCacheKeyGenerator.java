@@ -16,6 +16,8 @@ public class NoCacheKeyGenerator implements CacheKeyGenerator
   @Override
   public String createKey(final MethodInvocation methodInvocation)
   {
+    // Do nothing.
+
     return null;
   }
 }

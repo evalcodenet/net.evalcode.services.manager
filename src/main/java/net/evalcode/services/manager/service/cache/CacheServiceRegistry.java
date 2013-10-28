@@ -12,9 +12,6 @@ import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
 import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCacheManagerFactory;
 import net.evalcode.services.manager.service.cache.spi.Cache;
 import net.evalcode.services.manager.service.cache.spi.CacheService;
-import net.evalcode.services.manager.service.logging.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -29,7 +26,6 @@ import org.slf4j.LoggerFactory;
 public class CacheServiceRegistry
 {
   // PREDEFINED PROPERTIES
-  static final Logger LOG=LoggerFactory.getLogger(CacheServiceRegistry.class);
   static final CacheServiceRegistry INSTANCE=new CacheServiceRegistry();
 
 
@@ -60,39 +56,29 @@ public class CacheServiceRegistry
 
 
   // ACCESSORS/MUTATORS
-  @Log
   @Bind
   public void bind(final CacheService<?> cacheService)
   {
-    LOG.debug("Binding cache service: {}", cacheService);
-
     cacheServices.offer(cacheService);
   }
 
-  @Log
   @Unbind
   public void unbind(final CacheService<?> cacheService)
   {
-    LOG.debug("Unbinding cache service: {}", cacheService);
-
     cacheServices.remove(cacheService);
   }
 
 
-  @Log
   public Cache<?> cacheForRegion(final String regionName)
   {
     return cacheServiceForRegion(regionName).cache(regionName);
   }
 
-  @Log
   public Cache<?> cacheForRegion(final String regionName, final String defaultConfig)
   {
     return cacheServiceForRegion(regionName).cache(regionName, defaultConfig);
   }
 
-
-  @Log
   public CacheService<?> cacheServiceForRegion(final String regionName)
   {
     if(regionName.isEmpty())
