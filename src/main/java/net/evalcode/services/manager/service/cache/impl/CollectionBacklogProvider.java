@@ -1,6 +1,7 @@
 package net.evalcode.services.manager.service.cache.impl;
 
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
@@ -105,8 +106,12 @@ public class CollectionBacklogProvider implements BacklogProvider
 
         final Object value=futures.get(hash);
 
-        if(null==value)
-          futures.putIfAbsent(hash, new ValueFuture(backlog, methodInvocation, hash, key));
+        if(null==value && !backlog.containsKey(hash))
+        {
+          futures.putIfAbsent(hash, new ValueFuture(backlog,
+            new WeakReference<MethodInvocation>(methodInvocation), hash, key)
+          );
+        }
       }
 
       final Collection<Object> returnValueCollection=returnValueCollection();
@@ -151,14 +156,14 @@ public class CollectionBacklogProvider implements BacklogProvider
 
       // MEMBERS
       final ConcurrentMap<Integer, Object> backlog;
-      final MethodInvocation methodInvocation;
+      final WeakReference<MethodInvocation> methodInvocation;
       final Integer methodInvocationHash;
       final Integer hash;
 
 
       // CONSTRUCTION
       ValueFuture(final ConcurrentMap<Integer, Object> backlog,
-        final MethodInvocation methodInvocation, final Integer hash, final Object key)
+        final WeakReference<MethodInvocation> methodInvocation, final Integer hash, final Object key)
       {
         this.backlog=backlog;
         this.hash=hash;
@@ -180,6 +185,7 @@ public class CollectionBacklogProvider implements BacklogProvider
 
         if(null==value)
         {
+          final MethodInvocation methodInvocation=this.methodInvocation.get();
           final Collection<Object> arguments=(Collection<Object>)methodInvocation.getArguments()[0];
           arguments.removeAll(backlog.values());
 
@@ -193,6 +199,9 @@ public class CollectionBacklogProvider implements BacklogProvider
             // TODO Respect @Key.Type
             for(final Object object : collection)
               backlog.put(object.hashCode(), object);
+
+            if(backlog.containsKey(hash))
+              this.methodInvocation.clear();
           }
 
           return backlog.get(hash);
