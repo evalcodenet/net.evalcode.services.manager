@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * Flush
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
 @Documented
 @Target({ElementType.METHOD})
@@ -21,5 +21,5 @@ public @interface Flush
   // PROPERTIES
   Region region() default @Region;
 
-  Key[] key() default @Key(type=Key.Type.ALL);
+  Key[] key() default {};
 }

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * KeySegment
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
 @Documented
 @Target({ElementType.PARAMETER})

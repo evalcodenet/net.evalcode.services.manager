@@ -1,23 +1,31 @@
 package net.evalcode.services.manager.service.cache.impl;
 
 
-import net.evalcode.services.manager.service.cache.spi.CacheKeyGenerator;
+import javax.inject.Singleton;
+import net.evalcode.services.manager.service.cache.annotation.Key;
 import org.aopalliance.intercept.MethodInvocation;
 
 
 /**
  * NoCacheKeyGenerator
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
-public class NoCacheKeyGenerator implements CacheKeyGenerator
+@Singleton
+public final class NoCacheKeyGenerator extends MethodCacheKeyGenerator
 {
-  // OVERRIDES/IMPLEMENTS
+  // ACCESSORS/MUTATORS
   @Override
-  public String createKey(final MethodInvocation methodInvocation)
+  public Object createKey(final Key key, final MethodInvocation methodInvocation)
   {
-    // Do nothing.
+    final String value=key.value();
 
-    return null;
+    if(value.isEmpty())
+      return super.createKey(key, methodInvocation);
+
+    if(Key.Type.PLAIN.equals(key.type()))
+      return value;
+
+    return Integer.valueOf(value.hashCode());
   }
 }

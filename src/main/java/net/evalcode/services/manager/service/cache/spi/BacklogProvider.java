@@ -1,18 +1,17 @@
 package net.evalcode.services.manager.service.cache.spi;
 
 
-import java.util.Map;
 import org.aopalliance.intercept.MethodInvocation;
 
 
 /**
  * BacklogProvider
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
-public interface BacklogProvider<T>
+public interface BacklogProvider
 {
   // ACCCESSORS
-  Map<Integer, T> invoke(MethodInvocation methodInvocation, Map<Integer, T> backlog)
+  Object invoke(Cache<?> cache, Object cacheKey, MethodInvocation methodInvocation)
     throws Throwable;
 }

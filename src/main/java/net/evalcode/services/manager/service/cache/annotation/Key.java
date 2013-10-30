@@ -7,21 +7,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import net.evalcode.services.manager.service.cache.impl.NoCacheKeyGenerator;
-import net.evalcode.services.manager.service.cache.spi.CacheKeyGenerator;
+import net.evalcode.services.manager.service.cache.spi.internal.CacheKeyGenerator;
 
 
 /**
  * Key
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
 @Documented
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Key
 {
   // PROPERTIES
-  Key.Type type() default Type.HASHCODE;
+  Key.Type type() default Type.PLAIN;
 
   String value() default "";
 
@@ -31,14 +31,12 @@ public @interface Key
   /**
    * Type
    *
-   * @author evalcode.net
+   * @author carsten.schipke@gmail.com
    */
   public enum Type
   {
     // PREDEFINED TYPES
-    ALL,
-    GENERATOR,
     HASHCODE,
-    SIGNATURE;
+    PLAIN;
   }
 }

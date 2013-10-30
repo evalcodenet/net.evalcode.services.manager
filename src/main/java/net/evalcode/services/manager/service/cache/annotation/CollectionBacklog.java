@@ -9,10 +9,11 @@ import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.HashSet;
 import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvider;
+import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
 
 
 /**
- * Backlog
+ * CacheBacklog
  *
  * <p>
  * Caches possible map values for methods returning subsets for given input keys.
@@ -31,8 +32,8 @@ import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvide
  *   class Foo
  *   {
  *     {@link Cache &#064;Cache}
- *     {@link CollectionBacklog &#064;CollectionBacklog}
- *     Collection<Bar> getValues({@link CollectionBacklog.Keys &#064;CollectionBacklog.Keys} final Collection<Integer> keys)
+ *     {@link CollectionBacklog &#064;CacheBacklog}
+ *     Collection<Bar> getValues(final Collection<Integer> keys)
  *     {
  *       [..]
  *     }
@@ -50,6 +51,14 @@ import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvide
  *   // collection values for keys {1, 2, 3, 4, 5}.
  *   getValues({1, 2, 3, 4, 5});
  * </pre>
+ *
+ * <p>
+ * Annotated method must have exactly one parameter containing a collection of key(s)
+ * for requested values.
+ *
+ * <p>
+ * Parameter/key can be annotated with {@link Key &#064;Key} for further customization.
+ *
  * @author carsten.schipke@gmail.com
  */
 @Documented
@@ -59,51 +68,9 @@ public @interface CollectionBacklog
 {
   // PROPERTIES
   @SuppressWarnings("rawtypes")
-  /**
-   * Concrete collection implementation type
-   * the annotated method is expected to return.
-   */
   Class<? extends Collection> type() default HashSet.class;
   /**
-   * Backlog imlementation.
+   * Cache backlog imlementation.
    */
-  Class<? extends CollectionBacklogProvider> provider() default CollectionBacklogProvider.class;
-
-
-  /**
-   * CollectionBacklog.Keys
-   *
-   * <p>
-   * Defines method parameter as set of keys for cached backlog.
-   *
-   * @author evalcode.net
-   */
-  @Documented
-  @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface Keys
-  {
-    // PROPERTIES
-    /**
-     * <p>
-     * Define one or multiple keys to influence handling of passed
-     * collection keys or to provide default keys as fallback.
-     *
-     * <p>
-     * Default, use Bar.hashCode() of each key to check existance
-     * of corresponding cached value:
-     *
-     * <pre>
-     *   package net.evalcode.services;
-     *
-     *   {@link Cache &#064;Cache}
-     *   {@link CollectionBacklog &#064;CollectionBacklog}
-     *   Collection<Foo> getValues({@link CollectionBacklog.Keys &#064;CollectionBacklog.Keys} final Collection<Bar> keys)
-     *   {
-     *     [..]
-     *   }
-     * </pre>
-     */
-    Key[] value() default {@Key};
-  }
+  Class<? extends BacklogProvider> provider() default CollectionBacklogProvider.class;
 }
