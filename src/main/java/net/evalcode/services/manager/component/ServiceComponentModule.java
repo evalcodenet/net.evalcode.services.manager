@@ -40,6 +40,7 @@ import com.google.inject.name.Names;
  *
  * @author carsten.schipke@gmail.com
  */
+@Singleton
 public class ServiceComponentModule extends AbstractModule
 {
   // MEMBERS

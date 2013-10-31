@@ -254,7 +254,7 @@ public enum SystemProperty
 
 
     // load default values
-    final Set<String> keys=new HashSet<String>();
+    final Set<String> keys=new HashSet<>();
 
     for(final SystemProperty systemProperty : values())
     {

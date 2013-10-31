@@ -1,12 +1,14 @@
 package net.evalcode.services.manager.service.cache.impl;
 
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Singleton;
 import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
@@ -70,15 +72,12 @@ public class CollectionBacklogProvider implements BacklogProvider
   static class CollectionBacklogMethod
   {
     // MEMBERS
-    final ConcurrentMap<Integer, ValueFuture> futures=new ConcurrentHashMap<>();
-    final ConcurrentMap<Integer, Object> backlog=new ConcurrentHashMap<>();
+    final ConcurrentMap<Integer, ValueFuture> backlog=new ConcurrentHashMap<>();
 
     // TODO Update external cache.
     final Cache<?> cache;
     final Object cacheKey;
-    final Method method;
-
-    volatile Class<? extends Collection> returnType;
+    final Class<? extends Collection> returnType;
 
 
     // CONSTRUCTION
@@ -86,7 +85,7 @@ public class CollectionBacklogProvider implements BacklogProvider
     {
       this.cache=cache;
       this.cacheKey=cacheKey;
-      this.method=method;
+      this.returnType=method.getAnnotation(CollectionBacklog.class).type();
     }
 
 
@@ -97,6 +96,11 @@ public class CollectionBacklogProvider implements BacklogProvider
       final Integer[] keysHashed=new Integer[keys.size()];
       int idx=0;
 
+      Thread.currentThread().setName(methodInvocation.getMethod().toGenericString());
+      final CountDownLatch methodInvoked=new CountDownLatch(1);
+
+      final Set<Object> missing=new HashSet<>();
+
       for(final Object key : keys)
       {
         // TODO Respect @Key.Type
@@ -104,110 +108,80 @@ public class CollectionBacklogProvider implements BacklogProvider
 
         keysHashed[idx++]=hash;
 
-        final Object value=futures.get(hash);
+        final Object value=backlog.get(hash);
 
-        if(null==value && !backlog.containsKey(hash))
+        if(null==value)
         {
-          futures.putIfAbsent(hash, new ValueFuture(backlog,
-            new WeakReference<MethodInvocation>(methodInvocation), hash, key)
-          );
+          if(null==backlog.putIfAbsent(hash, new ValueFuture(methodInvoked)))
+            missing.add(key);
         }
+      }
+
+      final Collection<Object> arguments=(Collection<Object>)methodInvocation.getArguments()[0];
+      arguments.retainAll(missing);
+
+      if(0<arguments.size())
+      {
+        final Collection<Object> collection=(Collection<Object>)methodInvocation.proceed();
+
+        // TODO Respect @Key.Type
+        for(final Object object : collection)
+          backlog.get(object.hashCode()).value(object);
+
+        methodInvoked.countDown();
       }
 
       final Collection<Object> returnValueCollection=returnValueCollection();
 
       for(final Integer hash : keysHashed)
-        returnValueCollection.add(futures.get(hash).getValue());
+        returnValueCollection.add(backlog.get(hash).value());
 
       return returnValueCollection;
     }
 
-    Class<? extends Collection> returnType()
-    {
-      if(null==returnType)
-      {
-        final CollectionBacklog annotation=method.getAnnotation(CollectionBacklog.class);
-
-        returnType=annotation.type();
-
-        return returnType;
-      }
-
-      return returnType;
-    }
-
     Collection<Object> returnValueCollection() throws InstantiationException, IllegalAccessException
     {
-      return (Collection<Object>)returnType().newInstance();
+      return (Collection<Object>)returnType.newInstance();
     }
 
 
     /**
-     * PopulatorValue
+     * ValueFuture
      *
      * @author carsten.schipke@gmail.com
      */
     static class ValueFuture
     {
-      // PREDEFINED PROPERTIES
-      static final ConcurrentMap<Integer, ConcurrentMap<Integer, Object>> KEYS=
-        new ConcurrentHashMap<>();
-
-
       // MEMBERS
-      final ConcurrentMap<Integer, Object> backlog;
-      final WeakReference<MethodInvocation> methodInvocation;
-      final Integer methodInvocationHash;
-      final Integer hash;
+      private final AtomicReference<Object> value=new AtomicReference<>(null);
+      private final CountDownLatch methodInvoked;
 
 
       // CONSTRUCTION
-      ValueFuture(final ConcurrentMap<Integer, Object> backlog,
-        final WeakReference<MethodInvocation> methodInvocation, final Integer hash, final Object key)
+      ValueFuture(final CountDownLatch methodInvoked)
       {
-        this.backlog=backlog;
-        this.hash=hash;
-
-        this.methodInvocation=methodInvocation;
-        this.methodInvocationHash=methodInvocation.hashCode();
-
-        if(!KEYS.containsKey(methodInvocationHash))
-          KEYS.putIfAbsent(methodInvocationHash, new ConcurrentHashMap<Integer, Object>());
-
-        KEYS.get(methodInvocationHash).putIfAbsent(hash, key);
+        this.methodInvoked=methodInvoked;
       }
 
 
       // ACCESSORS
-      Object getValue() throws Throwable
+      Object value()
       {
-        final Object value=backlog.get(hash);
-
-        if(null==value)
+        try
         {
-          final MethodInvocation methodInvocation=this.methodInvocation.get();
-          final Collection<Object> arguments=(Collection<Object>)methodInvocation.getArguments()[0];
-          arguments.removeAll(backlog.values());
-
-          if(0<arguments.size())
-          {
-            final Map<Integer, Object> keys=KEYS.get(methodInvocationHash);
-            arguments.retainAll(keys.values());
-
-            final Collection<Object> collection=(Collection<Object>)methodInvocation.proceed();
-
-            // TODO Respect @Key.Type
-            for(final Object object : collection)
-              backlog.put(object.hashCode(), object);
-
-            if(backlog.containsKey(hash))
-              this.methodInvocation.clear();
-          }
-
-          return backlog.get(hash);
+          methodInvoked.await();
+        }
+        catch(final InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
         }
 
-        return value;
+        return value.get();
+      }
+
+      void value(final Object value)
+      {
+        this.value.set(value);
       }
     }
   }
