@@ -12,6 +12,6 @@ import org.aopalliance.intercept.MethodInvocation;
 public interface BacklogProvider
 {
   // ACCCESSORS
-  Object invoke(Cache<?> cache, Object cacheKey, MethodInvocation methodInvocation)
+  Object invoke(MethodInvocation methodInvocation)
     throws Throwable;
 }

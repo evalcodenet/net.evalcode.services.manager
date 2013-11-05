@@ -1,20 +1,28 @@
 package net.evalcode.services.manager.service.cache.impl;
 
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Singleton;
+import net.evalcode.services.manager.service.cache.annotation.Cache;
 import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
+import net.evalcode.services.manager.service.cache.annotation.KeySegment;
+import net.evalcode.services.manager.service.cache.annotation.Lifetime;
+import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvider.CollectionBacklogMethod.Metadata;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
-import net.evalcode.services.manager.service.cache.spi.Cache;
 import net.jcip.annotations.ThreadSafe;
 import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.google.common.cache.CacheBuilder;
 
 
 /**
@@ -28,39 +36,37 @@ import org.aopalliance.intercept.MethodInvocation;
 public class CollectionBacklogProvider implements BacklogProvider
 {
   // PREDEFINED PROPERTIES
+  static final Logger LOG=LoggerFactory.getLogger(CollectionBacklogProvider.class);
   static final ConcurrentMap<String, CollectionBacklogMethod> METHODS=new ConcurrentHashMap<>();
 
 
   // OVERRIDES/IMPLEMENTS
   @Override
-  public Object invoke(final Cache<?> cache, final Object cacheKey,
-    final MethodInvocation methodInvocation)
-      throws Throwable
+  public Object invoke(final MethodInvocation methodInvocation)
+    throws Throwable
   {
-    final Object[] arguments=methodInvocation.getArguments();
+    final Method method=methodInvocation.getMethod();
+    final Metadata metadata=Metadata.get(method);
 
-    if(0==arguments.length || !(arguments[0] instanceof Collection))
+    final Object[] arguments=methodInvocation.getArguments();
+    final Collection<Object> keys=(Collection)arguments[metadata.collectionKeysIdx()];
+
+    final CollectionBacklogMethod populator=METHODS.get(metadata.cacheKeyImpl(methodInvocation));
+
+    if(null==populator)
     {
-      throw new IllegalArgumentException(
-        "Method must be invoked with exactly one parameter of type Collection."
+      final CollectionBacklogMethod populatorNew=new CollectionBacklogMethod(method);
+      final CollectionBacklogMethod populatorExisting=METHODS.putIfAbsent(
+        metadata.cacheKeyImpl(methodInvocation), populatorNew
       );
+
+      if(null==populatorExisting)
+        return populatorNew.invoke(methodInvocation, keys);
+
+      return populatorExisting.invoke(methodInvocation, keys);
     }
 
-    final Method method=methodInvocation.getMethod();
-    final String methodId=method.toGenericString();
-
-    final CollectionBacklogMethod populator=METHODS.get(methodId);
-
-    if(null!=populator)
-      return populator.invoke(methodInvocation, (Collection)arguments[0]);
-
-    final CollectionBacklogMethod populatorNew=new CollectionBacklogMethod(cache, cacheKey, method);
-    final CollectionBacklogMethod populatorExisting=METHODS.putIfAbsent(methodId, populatorNew);
-
-    if(null==populatorExisting)
-      return populatorNew.invoke(methodInvocation, (Collection)arguments[0]);
-
-    return populatorExisting.invoke(methodInvocation, (Collection)arguments[0]);
+    return populator.invoke(methodInvocation, keys);
   }
 
 
@@ -72,20 +78,23 @@ public class CollectionBacklogProvider implements BacklogProvider
   static class CollectionBacklogMethod
   {
     // MEMBERS
-    final ConcurrentMap<Integer, ValueFuture> backlog=new ConcurrentHashMap<>();
-
-    // TODO Update external cache.
-    final Cache<?> cache;
-    final Object cacheKey;
-    final Class<? extends Collection> returnType;
+    final ConcurrentMap<Integer, Element> backlog;
+    final Metadata metadata;
 
 
     // CONSTRUCTION
-    CollectionBacklogMethod(final Cache<?> cache, final Object cacheKey, final Method method)
+    CollectionBacklogMethod(final Method method)
     {
-      this.cache=cache;
-      this.cacheKey=cacheKey;
-      this.returnType=method.getAnnotation(CollectionBacklog.class).type();
+      metadata=Metadata.get(method);
+
+      final Lifetime lifetime=metadata.collectionLifetime();
+
+      final com.google.common.cache.Cache<Integer, Element> cache=
+        CacheBuilder.newBuilder()
+          .expireAfterWrite(lifetime.value(), lifetime.unit())
+          .build();
+
+      backlog=cache.asMap();
     }
 
 
@@ -96,92 +105,335 @@ public class CollectionBacklogProvider implements BacklogProvider
       final Integer[] keysHashed=new Integer[keys.size()];
       int idx=0;
 
-      Thread.currentThread().setName(methodInvocation.getMethod().toGenericString());
       final CountDownLatch methodInvoked=new CountDownLatch(1);
-
-      final Set<Object> missing=new HashSet<>();
+      final Map<Integer, Element> ofInterest=new HashMap<>();
+      final Set<Object> missingValues=new HashSet<>();
 
       for(final Object key : keys)
       {
         // TODO Respect @Key.Type
+        // TODO Provide interface to allow cache elements to define a comparator.
         final Integer hash=Integer.valueOf(key.hashCode());
 
         keysHashed[idx++]=hash;
 
-        final Object value=backlog.get(hash);
+        final Element element=backlog.get(hash);
 
-        if(null==value)
+        if(null==element)
         {
-          if(null==backlog.putIfAbsent(hash, new ValueFuture(methodInvoked)))
-            missing.add(key);
+          final Element elementNew=new ElementFuture(methodInvoked);
+          final Element elementExisting=backlog.putIfAbsent(hash, elementNew);
+
+          if(null==elementExisting)
+          {
+            ofInterest.put(hash, elementNew);
+
+            missingValues.add(key);
+          }
+          else
+          {
+            ofInterest.put(hash, elementExisting);
+          }
+        }
+        else
+        {
+          if(null==element.get())
+          {
+            final Element elementNew=new ElementFuture(methodInvoked);
+
+            if(backlog.replace(hash, element, elementNew))
+            {
+              ofInterest.put(hash,  elementNew);
+
+              missingValues.add(key);
+            }
+            else
+            {
+              ofInterest.put(hash, backlog.get(hash));
+            }
+          }
+          else
+          {
+            ofInterest.put(hash, element);
+          }
         }
       }
 
-      final Collection<Object> arguments=(Collection<Object>)methodInvocation.getArguments()[0];
-      arguments.retainAll(missing);
-
-      if(0<arguments.size())
+      if(0<missingValues.size())
       {
-        final Collection<Object> collection=(Collection<Object>)methodInvocation.proceed();
+        final Collection<Object> arguments=
+          (Collection<Object>)methodInvocation.getArguments()[metadata.collectionKeysIdx()];
 
-        // TODO Respect @Key.Type
-        for(final Object object : collection)
-          backlog.get(object.hashCode()).value(object);
+        arguments.retainAll(missingValues);
 
-        methodInvoked.countDown();
+        if(0<arguments.size())
+        {
+          try
+          {
+            final Collection<Object> collection=(Collection<Object>)methodInvocation.proceed();
+
+            // TODO Respect @Key.Type
+            for(final Object object : collection)
+            {
+              final Element element=ofInterest.get(object.hashCode());
+
+              if(null==element)
+              {
+                LOG.warn("Value expired / key/value hashcode mismatch [{}].", object.hashCode());
+
+                backlog.putIfAbsent(object.hashCode(), new Element(object));
+              }
+              else
+              {
+                element.set(object);
+              }
+            }
+          }
+          finally
+          {
+            methodInvoked.countDown();
+          }
+        }
       }
 
-      final Collection<Object> returnValueCollection=returnValueCollection();
+      final Collection<Object> returnValueCollection=
+        (Collection<Object>)metadata.collectionType().newInstance();
 
       for(final Integer hash : keysHashed)
-        returnValueCollection.add(backlog.get(hash).value());
+      {
+        final Element element=ofInterest.get(hash);
+
+        if(null==element)
+          LOG.warn("Value expired [{}].", hash);
+        else
+          returnValueCollection.add(element.get());
+      }
 
       return returnValueCollection;
     }
 
-    Collection<Object> returnValueCollection() throws InstantiationException, IllegalAccessException
+
+    /**
+     * Element
+     *
+     * @author carsten.schipke@gmail.com
+     */
+    static class Element
     {
-      return (Collection<Object>)returnType.newInstance();
+      // MEMBERS
+      private volatile Object value;
+
+
+      // CONSTRUCTION
+      Element()
+      {
+        super();
+      }
+
+      Element(final Object value)
+      {
+        super();
+
+        this.value=value;
+      }
+
+
+      // ACCESSORS/MUTATORS
+      Object get()
+      {
+        return value;
+      }
+
+      void set(final Object object)
+      {
+        value=object;
+      }
     }
 
 
     /**
-     * ValueFuture
+     * ElementFuture
      *
      * @author carsten.schipke@gmail.com
      */
-    static class ValueFuture
+    static class ElementFuture extends Element
     {
       // MEMBERS
-      private final AtomicReference<Object> value=new AtomicReference<>(null);
-      private final CountDownLatch methodInvoked;
+      private final CountDownLatch monitor;
 
 
       // CONSTRUCTION
-      ValueFuture(final CountDownLatch methodInvoked)
+      ElementFuture(final CountDownLatch monitor)
       {
-        this.methodInvoked=methodInvoked;
+        super();
+
+        this.monitor=monitor;
       }
 
 
       // ACCESSORS
-      Object value()
+      Object get()
       {
-        try
+        final Object value=super.get();
+
+        if(null==value)
         {
-          methodInvoked.await();
-        }
-        catch(final InterruptedException e)
-        {
-          Thread.currentThread().interrupt();
+          try
+          {
+            monitor.await();
+          }
+          catch(final InterruptedException e)
+          {
+            Thread.currentThread().interrupt();
+          }
+
+          return super.get();
         }
 
-        return value.get();
+        return value;
+      }
+    }
+
+
+    /**
+     * Metadata
+     *
+     * @author carsten.schipke@gmail.com
+     */
+    static class Metadata
+    {
+      // PREDEFINED PROPERTIES
+      private static final ConcurrentMap<String, Metadata> INSTANCES=new ConcurrentHashMap<>();
+
+
+      // MEMBERS
+      private final String name;
+      private final Method method;
+
+      private volatile Class<? extends Collection> collectionType;
+      private volatile Lifetime collectionLifetime;
+      private volatile int collectionKeysIdx=-1;
+
+      private volatile boolean collectionKeySegmentIndicesInitialized=false;
+      private int collectionKeySegmentIndices[]=new int[0];
+
+
+      // CONSTRUCTION
+      Metadata(final String name, final Method method)
+      {
+        this.name=name;
+        this.method=method;
       }
 
-      void value(final Object value)
+
+      // STATIC ACCESSORS
+      static Metadata get(final Method method)
       {
-        this.value.set(value);
+        final String name=method.toGenericString();
+
+        if(!INSTANCES.containsKey(name))
+        {
+          final Metadata metadata=new Metadata(name, method);
+          final Metadata metadataExisting=INSTANCES.putIfAbsent(name, metadata);
+
+          if(null==metadataExisting)
+            return metadata;
+
+          return metadataExisting;
+        }
+
+        return INSTANCES.get(name);
+      }
+
+
+      // IMPLEMENTATION
+      String cacheKeyImpl(final MethodInvocation methodInvocation)
+      {
+        final StringBuffer keySegments=new StringBuffer(name);
+        keySegments.append(name);
+
+        for(final int idx : cacheKeySegments())
+        {
+          keySegments.append("-");
+          keySegments.append(methodInvocation.getArguments()[idx].hashCode());
+        }
+
+        return keySegments.toString();
+      }
+
+      int[] cacheKeySegments()
+      {
+        if(!collectionKeySegmentIndicesInitialized)
+        {
+          final Annotation[][] annotations=method.getParameterAnnotations();
+          int idx[]=new int[annotations.length];
+
+          int i=0, j=0;
+
+          for(final Annotation[] parameterAnnotations : annotations)
+          {
+            for(final Annotation parameterAnnotation : parameterAnnotations)
+            {
+              if(KeySegment.class.equals(parameterAnnotation.annotationType()))
+                idx[j++]=i;
+            }
+
+            i++;
+          }
+
+          int tmp[]=new int[j];
+          System.arraycopy(idx, 0, tmp, 0, j);
+
+          collectionKeySegmentIndices=tmp;
+          collectionKeySegmentIndicesInitialized=true;
+        }
+
+        return collectionKeySegmentIndices;
+      }
+
+      int collectionKeysIdx()
+      {
+        if(-1==collectionKeysIdx)
+        {
+          int idx=0;
+
+          if(1==method.getParameterTypes().length
+            && Collection.class.isAssignableFrom(method.getParameterTypes()[0]))
+            return collectionKeysIdx=0;
+
+          for(final Annotation[] annotations : method.getParameterAnnotations())
+          {
+            for(final Annotation annotation : annotations)
+            {
+              if(CollectionBacklog.Keys.class.equals(annotation.annotationType()))
+                return collectionKeysIdx=idx;
+            }
+
+            idx++;
+          }
+
+          throw new IllegalArgumentException("Method must have exactly one argument of type "
+            + "collection annotated with @CollectionBacklog.Keys."
+          );
+        }
+
+        return collectionKeysIdx;
+      }
+
+      Lifetime collectionLifetime()
+      {
+        if(null==collectionLifetime)
+          collectionLifetime=method.getAnnotation(Cache.class).lifetime();
+
+        return collectionLifetime;
+      }
+
+      Class<? extends Collection> collectionType()
+      {
+        if(null==collectionType)
+          collectionType=method.getAnnotation(CollectionBacklog.class).type();
+
+        return collectionType;
       }
     }
   }

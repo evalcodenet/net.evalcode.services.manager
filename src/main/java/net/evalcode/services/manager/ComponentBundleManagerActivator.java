@@ -29,13 +29,12 @@ import com.google.inject.Guice;
 public class ComponentBundleManagerActivator implements BundleActivator
 {
   // PREDEFINED PROPERTIES
-  static final Logger LOG=LoggerFactory.getLogger(ComponentBundleManagerActivator.class);
-
   static final int MASK_TRACKED_BUNDLES=1023;
+  static final Logger LOG=LoggerFactory.getLogger(ComponentBundleManagerActivator.class);
 
 
   // MEMBERS
-  final ComponentBundleTracker evalBundleTracker=new ComponentBundleTracker();
+  final ComponentBundleTracker componentBundleTracker=new ComponentBundleTracker();
   BundleTracker bundleTracker;
 
   @Inject
@@ -63,10 +62,10 @@ public class ComponentBundleManagerActivator implements BundleActivator
       new ComponentBundleManagerModule()
     ).injectMembers(this);
 
-    evalBundleTracker.addBundleEventHandler(BundleEvent.STARTED, startingBundleEventHandler);
-    evalBundleTracker.addBundleEventHandler(BundleEvent.STOPPING, stoppingBundleEventHandler);
+    componentBundleTracker.addBundleEventHandler(BundleEvent.STARTED, startingBundleEventHandler);
+    componentBundleTracker.addBundleEventHandler(BundleEvent.STOPPING, stoppingBundleEventHandler);
 
-    bundleTracker=new BundleTracker(bundleContext, MASK_TRACKED_BUNDLES, evalBundleTracker);
+    bundleTracker=new BundleTracker(bundleContext, MASK_TRACKED_BUNDLES, componentBundleTracker);
 
     bundleTracker.open();
   }

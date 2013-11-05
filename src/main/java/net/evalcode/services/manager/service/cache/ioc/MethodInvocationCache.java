@@ -40,13 +40,28 @@ public class MethodInvocationCache implements MethodInterceptor
 
   // OVERRIDES/IMPLEMENTS
   @Override
-  public Object invoke(final MethodInvocation methodInvocation) throws Throwable
+  public Object invoke(final MethodInvocation methodInvocation)
+    throws Throwable
   {
     if(null==cacheServiceRegistry)
       cacheServiceRegistry=providerInjector.get().getInstance(CacheServiceRegistry.class);
 
     final Method method=methodInvocation.getMethod();
-    final Cache annotation=method.getAnnotation(Cache.class);
+
+    if(method.isAnnotationPresent(CollectionBacklog.class))
+      return invoke(methodInvocation, method.getAnnotation(CollectionBacklog.class));
+
+    if(method.isAnnotationPresent(CollectionBacklog.Asynchronous.class))
+      return invoke(methodInvocation, method.getAnnotation(CollectionBacklog.Asynchronous.class));
+
+    return invoke(methodInvocation, method.getAnnotation(Cache.class));
+  }
+
+
+  // IMPLEMENTATION
+  Object invoke(final MethodInvocation methodInvocation, final Cache annotation)
+    throws Throwable
+  {
     final Region region=annotation.region();
 
     final String regionName=resolveRegionName(methodInvocation, region);
@@ -59,16 +74,6 @@ public class MethodInvocationCache implements MethodInterceptor
     if(null==cache)
       return methodInvocation.proceed();
 
-    if(method.isAnnotationPresent(CollectionBacklog.class))
-    {
-      final CollectionBacklog backlog=method.getAnnotation(CollectionBacklog.class);
-      final Class<? extends BacklogProvider> backlogProviderType=backlog.provider();
-      final BacklogProvider backlogProvider=providerInjector.get()
-        .getInstance(backlogProviderType);
-
-      return backlogProvider.invoke(cache, cacheKey, methodInvocation);
-    }
-
     // TODO Respect method arguments.
     final Object value=cache.get(cacheKey);
 
@@ -78,8 +83,28 @@ public class MethodInvocationCache implements MethodInterceptor
     return value;
   }
 
+  Object invoke(final MethodInvocation methodInvocation, final CollectionBacklog annotation)
+    throws Throwable
+  {
+    return invoke(methodInvocation, annotation.provider());
+  }
 
-  // IMPLEMENTATION
+  Object invoke(final MethodInvocation methodInvocation,
+    final CollectionBacklog.Asynchronous annotation)
+      throws Throwable
+  {
+    return invoke(methodInvocation, annotation.provider());
+  }
+
+  Object invoke(final MethodInvocation methodInvocation,
+    final Class<? extends BacklogProvider> typeBacklogProvider) throws Throwable
+  {
+    final BacklogProvider backlogProvider=providerInjector.get()
+      .getInstance(typeBacklogProvider);
+
+    return backlogProvider.invoke(methodInvocation);
+  }
+
   Object resolveCacheKey(final MethodInvocation methodInvocation, final Key key)
   {
     final CacheKeyGenerator cacheKeyGenerator=providerInjector.get()

@@ -27,6 +27,4 @@ public @interface Cache
   Key key() default @Key;
 
   Lifetime lifetime() default @Lifetime;
-
-  CollectionBacklog backlog() default @CollectionBacklog;
 }

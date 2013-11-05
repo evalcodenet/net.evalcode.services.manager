@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.HashSet;
+import net.evalcode.services.manager.service.cache.impl.AsyncCollectionBacklogProvider;
 import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvider;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
 
@@ -70,7 +71,33 @@ public @interface CollectionBacklog
   @SuppressWarnings("rawtypes")
   Class<? extends Collection> type() default HashSet.class;
   /**
-   * Cache backlog imlementation.
+   * Synchronous collection cache backlog imlementation.
    */
   Class<? extends BacklogProvider> provider() default CollectionBacklogProvider.class;
+
+
+  @Documented
+  @Target({ElementType.METHOD})
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Asynchronous
+  {
+    // PROPERTIES
+    @SuppressWarnings("rawtypes")
+    Class<? extends Collection> type() default HashSet.class;
+    /**
+     * Asynchronous collection cache backlog imlementation.
+     */
+    Class<? extends BacklogProvider> provider() default AsyncCollectionBacklogProvider.class;
+
+    int concurrencyLevel() default 2;
+  }
+
+
+  @Documented
+  @Target({ElementType.PARAMETER})
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Keys
+  {
+
+  }
 }
