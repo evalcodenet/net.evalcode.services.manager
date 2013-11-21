@@ -18,7 +18,6 @@ import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
 import net.evalcode.services.manager.service.cache.annotation.Lifetime;
 import net.evalcode.services.manager.service.cache.impl.CollectionBacklogProvider.CollectionBacklogMethod.Metadata;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
-import net.jcip.annotations.ThreadSafe;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,9 @@ import com.google.inject.Injector;
  *
  * @author carsten.schipke@gmail.com
  */
+// FIXME Support @KeySegment
+// FIXME Wrong behavior with server runtime / runtime optimizations.
 @Singleton
-@ThreadSafe
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class AsyncCollectionBacklogProvider implements BacklogProvider
 {

@@ -20,6 +20,6 @@ import java.util.concurrent.TimeUnit;
 public @interface Lifetime
 {
   // PROPERTIES
-  long value() default 0L;
+  long value() default 86400L;
   TimeUnit unit() default TimeUnit.SECONDS;
 }
