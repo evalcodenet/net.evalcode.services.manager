@@ -1,6 +1,7 @@
 package net.evalcode.services.manager.service.cache.ioc;
 
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import javax.inject.Provider;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
@@ -8,6 +9,7 @@ import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
 import net.evalcode.services.manager.service.cache.annotation.Cache;
 import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
 import net.evalcode.services.manager.service.cache.annotation.Key;
+import net.evalcode.services.manager.service.cache.annotation.KeySegment;
 import net.evalcode.services.manager.service.cache.annotation.Region;
 import net.evalcode.services.manager.service.cache.impl.MethodCacheKeyGenerator;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
@@ -110,10 +112,25 @@ public class MethodInvocationCache implements MethodInterceptor
     final CacheKeyGenerator cacheKeyGenerator=providerInjector.get()
       .getInstance(key.generator());
 
+    final StringBuilder cacheKey=new StringBuilder(32);
     if(cacheKeyGenerator instanceof MethodCacheKeyGenerator)
-      return ((MethodCacheKeyGenerator)cacheKeyGenerator).createKey(key, methodInvocation);
+      cacheKey.append(((MethodCacheKeyGenerator)cacheKeyGenerator).createKey(key, methodInvocation));
+    else
+      cacheKey.append(cacheKeyGenerator.createKey(key));
 
-    return cacheKeyGenerator.createKey(key);
+    int idx=0;
+    for(final Annotation[] annotations : methodInvocation.getMethod().getParameterAnnotations())
+    {
+      for(final Annotation annotation : annotations)
+      {
+        if(KeySegment.class.equals(annotation.annotationType()))
+          cacheKey.append(methodInvocation.getArguments()[idx].hashCode());
+      }
+
+      idx++;
+    }
+
+    return cacheKey.toString();
   }
 
   String resolveRegionName(final MethodInvocation methodInvocation, final Region region)

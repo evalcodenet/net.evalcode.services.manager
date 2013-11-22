@@ -275,7 +275,7 @@ public class AsyncCollectionBacklogProvider implements BacklogProvider
     /**
      * TaskFuture
      *
-     * @author evalcode.net
+     * @author carsten.schipke@gmail.com
      */
     static class TaskFuture<V> extends TaskFutureValue<V>
     {
