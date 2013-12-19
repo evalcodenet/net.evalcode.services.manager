@@ -12,6 +12,7 @@ import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
 import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCacheManagerFactory;
 import net.evalcode.services.manager.service.cache.spi.Cache;
 import net.evalcode.services.manager.service.cache.spi.CacheService;
+import net.evalcode.services.manager.service.logging.Log;
 
 
 /**
@@ -56,12 +57,14 @@ public class CacheServiceRegistry
 
 
   // ACCESSORS/MUTATORS
+  @Log
   @Bind
   public void bind(final CacheService<?> cacheService)
   {
     cacheServices.offer(cacheService);
   }
 
+  @Log
   @Unbind
   public void unbind(final CacheService<?> cacheService)
   {
@@ -79,6 +82,7 @@ public class CacheServiceRegistry
     return cacheServiceForRegion(regionName).cache(regionName, defaultConfig);
   }
 
+  @Log
   public CacheService<?> cacheServiceForRegion(final String regionName)
   {
     if(regionName.isEmpty())
