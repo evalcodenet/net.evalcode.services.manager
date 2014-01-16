@@ -179,7 +179,9 @@ public class CollectionBacklogProvider implements BacklogProvider
 
               if(null==element)
               {
-                LOG.warn("Value expired / key/value hashcode mismatch [{}].", object.hashCode());
+                LOG.warn("Key/value hashcode mismatch - object will be added to cache but can not be returned to caller [method: {}, hash: {}, object: {}].",
+                  metadata.method, object.hashCode(), object
+                );
 
                 backlog.putIfAbsent(object.hashCode(), new Element(object));
               }
@@ -204,9 +206,16 @@ public class CollectionBacklogProvider implements BacklogProvider
         final Element element=ofInterest.get(hash);
 
         if(null==element)
+        {
           LOG.warn("Value expired [{}].", hash);
+        }
         else
-          returnValueCollection.add(element.get());
+        {
+          final Object value=element.get();
+
+          if(null!=value)
+            returnValueCollection.add(value);
+        }
       }
 
       return returnValueCollection;
