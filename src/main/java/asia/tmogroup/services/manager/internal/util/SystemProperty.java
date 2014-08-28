@@ -35,42 +35,42 @@ import org.slf4j.LoggerFactory;
 public enum SystemProperty
 {
   // PREDEFINED SYSTEM PROPERTIES
-  NET_EVALCODE_SERVICES_ENVIRONMENT(
+  ASIA_TMOGROUP_SERVICES_ENVIRONMENT(
     "net.evalcode.services.environment", "production"
   ),
-  NET_EVALCODE_SERVICES_LOCALE(
+  ASIA_TMOGROUP_SERVICES_LOCALE(
     "net.evalcode.services.locale", "en_US"
   ),
-  NET_EVALCODE_SERVICES_ENCODING(
+  ASIA_TMOGROUP_SERVICES_ENCODING(
     "net.evalcode.services.encoding", "UTF-8"
   ),
-  NET_EVALCODE_SERVICES_TIMEZONE(
+  ASIA_TMOGROUP_SERVICES_TIMEZONE(
     "net.evalcode.services.timezone", "Asia/Shanghai"
   ),
-  NET_EVALCODE_SERVICES_HOME(
+  ASIA_TMOGROUP_SERVICES_HOME(
     "net.evalcode.services.home", "./"
   ),
-  NET_EVALCODE_SERVICES_CONFIG(
+  ASIA_TMOGROUP_SERVICES_CONFIG(
     "net.evalcode.services.config", "./config"
   ),
-  NET_EVALCODE_SERVICES_RESOURCES(
+  ASIA_TMOGROUP_SERVICES_RESOURCES(
     "net.evalcode.services.resources", "./resources"
   ),
   // SMTP
-  NET_EVALCODE_SERVICES_SMTP_HOST(
+  ASIA_TMOGROUP_SERVICES_SMTP_HOST(
     "net.evalcode.services.smtp.host", "127.0.0.1"
   ),
-  NET_EVALCODE_SERVICES_SMTP_USER(
+  ASIA_TMOGROUP_SERVICES_SMTP_USER(
     "net.evalcode.services.smtp.user", null
   ),
-  NET_EVALCODE_SERVICES_SMTP_PASSWORD(
+  ASIA_TMOGROUP_SERVICES_SMTP_PASSWORD(
     "net.evalcode.services.smtp.password", null
   ),
-  NET_EVALCODE_SERVICES_SMTP_SENDER(
+  ASIA_TMOGROUP_SERVICES_SMTP_SENDER(
     "net.evalcode.services.smtp.sender", "services@evalcode.net"
   ),
   // JMX
-  NET_EVALCODE_SERVICES_JMX_NODE(
+  ASIA_TMOGROUP_SERVICES_JMX_NODE(
     "net.evalcode.services.jmx.node", "net.evalcode.services"
   );
 
@@ -116,63 +116,63 @@ public enum SystemProperty
 
   public static Path getGlobalConfigurationPath()
   {
-    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), PATH_DEFAULT);
+    return Paths.get(ASIA_TMOGROUP_SERVICES_CONFIG.get(), PATH_DEFAULT);
   }
 
   public static Path getGlobalConfigurationPath(final String subPath)
   {
-    return Paths.get(NET_EVALCODE_SERVICES_CONFIG.get(), PATH_DEFAULT, subPath);
+    return Paths.get(ASIA_TMOGROUP_SERVICES_CONFIG.get(), PATH_DEFAULT, subPath);
   }
 
   public static Path getLocalConfigurationPath()
   {
     return Paths.get(
-      NET_EVALCODE_SERVICES_CONFIG.get(),
-      NET_EVALCODE_SERVICES_ENVIRONMENT.get()
+      ASIA_TMOGROUP_SERVICES_CONFIG.get(),
+      ASIA_TMOGROUP_SERVICES_ENVIRONMENT.get()
     );
   }
 
   public static Path getLocalConfigurationPath(final String subPath)
   {
     return Paths.get(
-      NET_EVALCODE_SERVICES_CONFIG.get(),
-      NET_EVALCODE_SERVICES_ENVIRONMENT.get(),
+      ASIA_TMOGROUP_SERVICES_CONFIG.get(),
+      ASIA_TMOGROUP_SERVICES_ENVIRONMENT.get(),
       subPath
     );
   }
 
   public static Path getResourcesPath()
   {
-    return Paths.get(NET_EVALCODE_SERVICES_RESOURCES.get());
+    return Paths.get(ASIA_TMOGROUP_SERVICES_RESOURCES.get());
   }
 
   public static Path getResourcesPath(final String... subPath)
   {
-    return Paths.get(NET_EVALCODE_SERVICES_RESOURCES.get(), subPath);
+    return Paths.get(ASIA_TMOGROUP_SERVICES_RESOURCES.get(), subPath);
   }
 
   public static Charset getCharset()
   {
-    if(null==NET_EVALCODE_SERVICES_ENCODING.get())
+    if(null==ASIA_TMOGROUP_SERVICES_ENCODING.get())
       return Charset.defaultCharset();
 
-    return Charset.forName(NET_EVALCODE_SERVICES_ENCODING.get());
+    return Charset.forName(ASIA_TMOGROUP_SERVICES_ENCODING.get());
   }
 
   public static Locale getLocale()
   {
-    if(null==NET_EVALCODE_SERVICES_LOCALE.get())
+    if(null==ASIA_TMOGROUP_SERVICES_LOCALE.get())
       return Locale.getDefault();
 
-    return new Locale(NET_EVALCODE_SERVICES_LOCALE.get());
+    return new Locale(ASIA_TMOGROUP_SERVICES_LOCALE.get());
   }
 
   public static TimeZone getTimeZone()
   {
-    if(null==NET_EVALCODE_SERVICES_TIMEZONE.get())
+    if(null==ASIA_TMOGROUP_SERVICES_TIMEZONE.get())
       return TimeZone.getDefault();
 
-    return TimeZone.getTimeZone(NET_EVALCODE_SERVICES_TIMEZONE.get());
+    return TimeZone.getTimeZone(ASIA_TMOGROUP_SERVICES_TIMEZONE.get());
   }
 
   public static String get(final String key)
@@ -273,8 +273,8 @@ public enum SystemProperty
 
     // load global properties
     final File globalPropertiesFile=new File(
-      System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key(),
-        NET_EVALCODE_SERVICES_CONFIG.defaultValue())+
+      System.getProperty(ASIA_TMOGROUP_SERVICES_CONFIG.key(),
+        ASIA_TMOGROUP_SERVICES_CONFIG.defaultValue())+
       File.separator+
       PATH_DEFAULT+
       File.separator+
@@ -310,10 +310,10 @@ public enum SystemProperty
 
     // load local properties
     final File localPropertiesFile=new File(
-      System.getProperty(NET_EVALCODE_SERVICES_CONFIG.key())+
+      System.getProperty(ASIA_TMOGROUP_SERVICES_CONFIG.key())+
       File.separator+
-      System.getProperty(NET_EVALCODE_SERVICES_ENVIRONMENT.key(),
-        NET_EVALCODE_SERVICES_ENVIRONMENT.defaultValue())+
+      System.getProperty(ASIA_TMOGROUP_SERVICES_ENVIRONMENT.key(),
+        ASIA_TMOGROUP_SERVICES_ENVIRONMENT.defaultValue())+
       File.separator+
       FILE_PROPERTIES
     );
