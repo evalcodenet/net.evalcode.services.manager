@@ -113,12 +113,20 @@ public class MethodInvocationCache implements MethodInterceptor
       .getInstance(key.generator());
 
     final StringBuilder cacheKey=new StringBuilder(32);
+
     if(cacheKeyGenerator instanceof MethodCacheKeyGenerator)
-      cacheKey.append(((MethodCacheKeyGenerator)cacheKeyGenerator).createKey(key, methodInvocation));
+    {
+      cacheKey.append(
+        ((MethodCacheKeyGenerator)cacheKeyGenerator).createKey(key, methodInvocation)
+      );
+    }
     else
+    {
       cacheKey.append(cacheKeyGenerator.createKey(key));
+    }
 
     int idx=0;
+
     for(final Annotation[] annotations : methodInvocation.getMethod().getParameterAnnotations())
     {
       for(final Annotation annotation : annotations)

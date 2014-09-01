@@ -179,7 +179,9 @@ public class CollectionBacklogProvider implements BacklogProvider
 
               if(null==element)
               {
-                LOG.warn("Key/value hashcode mismatch - object will be added to cache but can not be returned to caller [method: {}, hash: {}, object: {}].",
+                LOG.warn("Key/value hashcode mismatch - "+
+                    "object will be added to cache but can not be "+
+                    "returned to caller [method: {}, hash: {}, object: {}].",
                   metadata.method, object.hashCode(), object
                 );
 
@@ -406,8 +408,8 @@ public class CollectionBacklogProvider implements BacklogProvider
         {
           int idx=0;
 
-          if(1==method.getParameterTypes().length
-            && Collection.class.isAssignableFrom(method.getParameterTypes()[0]))
+          if(1==method.getParameterTypes().length &&
+            Collection.class.isAssignableFrom(method.getParameterTypes()[0]))
             return collectionKeysIdx=0;
 
           for(final Annotation[] annotations : method.getParameterAnnotations())
@@ -421,8 +423,8 @@ public class CollectionBacklogProvider implements BacklogProvider
             idx++;
           }
 
-          throw new IllegalArgumentException("Method must have exactly one argument of type "
-            + "collection annotated with @CollectionBacklog.Keys."
+          throw new IllegalArgumentException("Method must have exactly one argument of type "+
+            "collection annotated with @CollectionBacklog.Keys."
           );
         }
 
