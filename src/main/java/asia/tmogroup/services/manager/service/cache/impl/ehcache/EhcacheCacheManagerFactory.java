@@ -1,4 +1,4 @@
-package net.evalcode.services.manager.service.cache.impl.ehcache.internal;
+package net.evalcode.services.manager.service.cache.impl.ehcache;
 
 
 import java.net.MalformedURLException;
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author carsten.schipke@gmail.com
  */
+// FIXME Hide implementation.
 public class EhcacheCacheManagerFactory
 {
   // PREDEFINED PROPERTIES

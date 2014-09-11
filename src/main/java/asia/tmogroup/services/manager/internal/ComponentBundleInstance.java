@@ -188,7 +188,7 @@ public class ComponentBundleInstance implements ComponentBundleInterface
 
     synchronized(this)
     {
-      if(null!=entityManagerFactory&&entityManagerFactory.isOpen())
+      if(null!=entityManagerFactory && entityManagerFactory.isOpen())
         entityManagerFactory.close();
     }
   }

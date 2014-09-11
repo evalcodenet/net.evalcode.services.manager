@@ -4,9 +4,12 @@ package net.evalcode.services.manager.service.cache.ioc;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import javax.inject.Provider;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
 import net.evalcode.services.manager.service.cache.annotation.Cache;
+import net.evalcode.services.manager.service.cache.annotation.CacheInstance;
 import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
 import net.evalcode.services.manager.service.cache.annotation.Key;
 import net.evalcode.services.manager.service.cache.annotation.KeySegment;
@@ -14,8 +17,6 @@ import net.evalcode.services.manager.service.cache.annotation.Region;
 import net.evalcode.services.manager.service.cache.impl.MethodCacheKeyGenerator;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
 import net.evalcode.services.manager.service.cache.spi.internal.CacheKeyGenerator;
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import com.google.inject.Injector;
 
 
@@ -56,6 +57,9 @@ public class MethodInvocationCache implements MethodInterceptor
     if(method.isAnnotationPresent(CollectionBacklog.Asynchronous.class))
       return invoke(methodInvocation, method.getAnnotation(CollectionBacklog.Asynchronous.class));
 
+    if(method.isAnnotationPresent(CacheInstance.class))
+      return invoke(methodInvocation, method.getAnnotation(CacheInstance.class));
+
     return invoke(methodInvocation, method.getAnnotation(Cache.class));
   }
 
@@ -77,10 +81,15 @@ public class MethodInvocationCache implements MethodInterceptor
       return methodInvocation.proceed();
 
     // TODO Respect method arguments.
-    final Object value=cache.get(cacheKey);
+    final Object value=cache.getIfPresent(cacheKey);
 
     if(null==value)
-      return cache.put(cacheKey, methodInvocation.proceed());
+    {
+      final Object valueNew=methodInvocation.proceed();
+      cache.put(cacheKey, valueNew);
+
+      return valueNew;
+    }
 
     return value;
   }
@@ -89,6 +98,17 @@ public class MethodInvocationCache implements MethodInterceptor
     throws Throwable
   {
     return invoke(methodInvocation, annotation.provider());
+  }
+
+  Object invoke(final MethodInvocation methodInvocation, final CacheInstance annotation)
+    throws Throwable
+  {
+    final Region region=annotation.region();
+
+    final String regionName=resolveRegionName(methodInvocation, region);
+    final String defaultConfig=resolveDefaultConfig(methodInvocation, region);
+
+    return cacheServiceRegistry.cacheForRegion(regionName, defaultConfig);
   }
 
   Object invoke(final MethodInvocation methodInvocation,

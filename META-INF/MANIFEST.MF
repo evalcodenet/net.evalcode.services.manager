@@ -29,4 +29,5 @@ Export-Package: net.evalcode.services.manager.component,
  net.evalcode.services.manager.service.statistics,
  net.evalcode.services.manager.service.statistics.ioc,
  net.evalcode.services.manager.util.io,
- net.evalcode.services.manager.util.persistence
+ net.evalcode.services.manager.util.persistence,
+ net.evalcode.services.manager.util.security

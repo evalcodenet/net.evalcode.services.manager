@@ -3,7 +3,6 @@ package net.evalcode.services.manager.util.io;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,10 +47,6 @@ public final class FileIO
     try(final FileInputStream fileInputStream=new FileInputStream(file))
     {
       return readInputStream(fileInputStream);
-    }
-    catch(final FileNotFoundException e)
-    {
-      LOG.error(e.getMessage(), e);
     }
     catch(final IOException e)
     {

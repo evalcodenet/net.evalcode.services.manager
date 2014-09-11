@@ -6,16 +6,10 @@ package net.evalcode.services.manager.service.cache.spi;
  *
  * @author carsten.schipke@gmail.com
  */
-public interface Cache<T>
+public interface Cache<T> extends com.google.common.cache.Cache<Object, Object>
 {
   // ACCESSORS/MUTATORS
-  String getName();
-
   boolean contains(Object key);
 
   Object get(Object key);
-  Object put(Object key, Object value);
-
-  void remove(Object key);
-  void removeAll();
 }

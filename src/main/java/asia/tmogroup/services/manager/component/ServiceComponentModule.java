@@ -8,6 +8,7 @@ import java.util.TimeZone;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import org.osgi.framework.BundleContext;
 import net.evalcode.services.manager.component.configuration.ConfigurationEntityManager;
 import net.evalcode.services.manager.component.configuration.ConfigurationEntityProvider;
 import net.evalcode.services.manager.internal.persistence.EntityManagerFactoryProvider;
@@ -15,6 +16,8 @@ import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
 import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
 import net.evalcode.services.manager.service.cache.annotation.Cache;
+import net.evalcode.services.manager.service.cache.annotation.CacheInstance;
+import net.evalcode.services.manager.service.cache.ioc.CacheInstanceProvider;
 import net.evalcode.services.manager.service.cache.ioc.MethodInvocationCache;
 import net.evalcode.services.manager.service.concurrent.annotation.Asynchronous;
 import net.evalcode.services.manager.service.concurrent.ioc.MethodInvocationExecutor;
@@ -23,7 +26,6 @@ import net.evalcode.services.manager.service.logging.ioc.MethodInvocationLogger;
 import net.evalcode.services.manager.service.statistics.Count;
 import net.evalcode.services.manager.service.statistics.ioc.MethodInvocationCounter;
 import net.evalcode.services.manager.util.io.FileIO;
-import org.osgi.framework.BundleContext;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
@@ -144,6 +146,9 @@ public abstract class ServiceComponentModule extends AbstractModule
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Cache.class),
       new MethodInvocationCache(getProvider(Injector.class)));
+
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(CacheInstance.class),
+      new CacheInstanceProvider(getProvider(Injector.class)));
 
     if(Stage.DEVELOPMENT.equals(currentStage()))
     {

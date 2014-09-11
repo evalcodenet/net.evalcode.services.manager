@@ -2,7 +2,6 @@ package net.evalcode.services.manager.service.cache.impl.ehcache;
 
 
 import java.util.Properties;
-import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCacheManagerFactory;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.hibernate.management.impl.ProviderMBeanRegistrationHelper;

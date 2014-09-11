@@ -12,11 +12,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import net.evalcode.services.manager.component.ComponentBundleInterface;
-import net.evalcode.services.manager.component.ServiceComponentInterface;
-import net.evalcode.services.manager.component.annotation.Activate;
-import net.evalcode.services.manager.component.annotation.Deactivate;
-import net.evalcode.services.manager.internal.util.Messages;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
@@ -24,6 +19,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.evalcode.services.manager.component.ComponentBundleInterface;
+import net.evalcode.services.manager.component.ServiceComponentInterface;
+import net.evalcode.services.manager.component.annotation.Activate;
+import net.evalcode.services.manager.component.annotation.Deactivate;
+import net.evalcode.services.manager.internal.util.Messages;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
@@ -109,9 +109,10 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
   }
 
   @Override
-  public Class<?> getType()
+  @SuppressWarnings("unchecked")
+  public <T> Class<T> getType()
   {
-    return clazz;
+    return (Class<T>)clazz;
   }
 
   @Override
@@ -321,17 +322,17 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
     {
       method.invoke(getInstance());
     }
-    catch(final IllegalArgumentException e)
-    {
-      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
-    }
     catch(final IllegalAccessException e)
     {
-      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
+      LOG.error(Messages.UNABLE_TO_ACCESS_COMPONENT_METHOD.get(), e);
     }
     catch(final InvocationTargetException e)
     {
-      LOG.error(Messages.UNABLE_TO_ACCESS_COMPONENT_METHOD.get(), e);
+      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
+    }
+    catch(final IllegalArgumentException e)
+    {
+      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
     }
   }
 
@@ -341,15 +342,15 @@ class ServiceComponentInstance implements ServiceComponentInterface, ServiceList
     {
       method.invoke(getInstance(), arguments);
     }
-    catch(final IllegalArgumentException e)
-    {
-      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
-    }
     catch(final IllegalAccessException e)
     {
       LOG.error(Messages.UNABLE_TO_ACCESS_COMPONENT_METHOD.get(), e);
     }
     catch(final InvocationTargetException e)
+    {
+      LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
+    }
+    catch(final IllegalArgumentException e)
     {
       LOG.error(Messages.UNABLE_TO_INVOKE_COMPONENT_METHOD.get(), e);
     }

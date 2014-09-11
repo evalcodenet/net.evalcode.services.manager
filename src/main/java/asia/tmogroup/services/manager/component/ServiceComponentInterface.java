@@ -14,7 +14,7 @@ public interface ServiceComponentInterface
 {
   // ACCESSORS/MUTATORS
   String getName();
-  Class<?> getType();
+  <T> Class<T> getType();
   <T> T getInstance();
 
   Injector getInjector();
