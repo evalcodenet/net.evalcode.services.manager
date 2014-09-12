@@ -45,8 +45,8 @@ public class CacheServiceRegistry
   /**
    * @internal
    *
-   * FIXME Refactor / decorated & exchangable (component service) caches/cache
-   * (region) factories for persistence and component service caching.
+   * FIXME Refactor / decorated & exchangable (component service) caches/cache (region)
+   * factories for persistence and component service caching.
    *
    * @see EhcacheCacheManagerFactory
    */

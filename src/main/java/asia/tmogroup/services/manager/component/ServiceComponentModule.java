@@ -16,8 +16,6 @@ import net.evalcode.services.manager.internal.persistence.EntityManagerProvider;
 import net.evalcode.services.manager.internal.util.SystemProperty;
 import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
 import net.evalcode.services.manager.service.cache.annotation.Cache;
-import net.evalcode.services.manager.service.cache.annotation.CacheInstance;
-import net.evalcode.services.manager.service.cache.ioc.CacheInstanceProvider;
 import net.evalcode.services.manager.service.cache.ioc.MethodInvocationCache;
 import net.evalcode.services.manager.service.concurrent.annotation.Asynchronous;
 import net.evalcode.services.manager.service.concurrent.ioc.MethodInvocationExecutor;
@@ -53,7 +51,7 @@ public abstract class ServiceComponentModule extends AbstractModule
   // ACCESSORS/MUTATORS
   public void setComponentBundle(final ComponentBundleInterface componentBundle)
   {
-    this.bundle=componentBundle;
+    bundle=componentBundle;
   }
 
 
@@ -64,7 +62,7 @@ public abstract class ServiceComponentModule extends AbstractModule
   {
     configureCommon();
 
-    final Configuration configuration=this.bundle.getConfiguration();
+    final Configuration configuration=bundle.getConfiguration();
     final Set<String> configurationKeys=configuration.keySet();
 
     for(final String key : configurationKeys)
@@ -80,7 +78,7 @@ public abstract class ServiceComponentModule extends AbstractModule
         });
     }
 
-    for(final Class<?> configurationEntityClazz : this.bundle.getConfigurationEntities())
+    for(final Class<?> configurationEntityClazz : bundle.getConfigurationEntities())
     {
       final ConfigurationEntityManager configurationEntityManager=new ConfigurationEntityManager(
         binder().getProvider(Injector.class),
@@ -94,16 +92,17 @@ public abstract class ServiceComponentModule extends AbstractModule
         .toInstance(configurationEntityManager);
 
       bind(configurationEntityClazz)
-        .toProvider(new ConfigurationEntityProvider(configurationEntityManager));
+        .toProvider(new ConfigurationEntityProvider(configurationEntityManager))
+        .in(Singleton.class);
     }
 
     bind(ComponentBundleInterface.class)
-      .toInstance(this.bundle);
+      .toInstance(bundle);
 
     bind(BundleContext.class)
-      .toInstance(this.bundle.getBundleContext());
+      .toInstance(bundle.getBundleContext());
 
-    for(final ServiceComponentInterface serviceComponent : this.bundle.getServiceComponents())
+    for(final ServiceComponentInterface serviceComponent : bundle.getServiceComponents())
     {
       bind(ServiceComponentInterface.class)
         .annotatedWith(Names.named(serviceComponent.getName()))
@@ -146,9 +145,6 @@ public abstract class ServiceComponentModule extends AbstractModule
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Cache.class),
       new MethodInvocationCache(getProvider(Injector.class)));
-
-    bindInterceptor(Matchers.any(), Matchers.annotatedWith(CacheInstance.class),
-      new CacheInstanceProvider(getProvider(Injector.class)));
 
     if(Stage.DEVELOPMENT.equals(currentStage()))
     {

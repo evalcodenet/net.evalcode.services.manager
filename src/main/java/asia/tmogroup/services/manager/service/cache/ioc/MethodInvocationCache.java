@@ -81,7 +81,7 @@ public class MethodInvocationCache implements MethodInterceptor
       return methodInvocation.proceed();
 
     // TODO Respect method arguments.
-    final Object value=cache.getIfPresent(cacheKey);
+    final Object value=cache.get(cacheKey);
 
     if(null==value)
     {

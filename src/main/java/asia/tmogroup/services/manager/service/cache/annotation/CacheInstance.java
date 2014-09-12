@@ -22,5 +22,6 @@ import java.lang.annotation.Target;
 public @interface CacheInstance
 {
   // PROPERTIES
+  // TODO Region may be passed as argument to annotated method.
   Region region() default @Region;
 }
