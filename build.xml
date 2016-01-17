@@ -107,19 +107,19 @@
   <!-- compile sources -->
   <target name="compile" depends="resolve">
     <!-- compile main sources -->
-    <javac srcdir="${dir.src.main}" destdir="${dir.build.main}" source="${bundle.source.version}" verbose="true" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
+    <javac srcdir="${dir.src.main}" destdir="${dir.build.main}" source="${source.version}" verbose="true" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
       <classpath refid="classpath.compile"/>
     </javac>
     <!-- instrument classes / unit tests -->
     <!-- <clover-env/>
-    <clover-instrument srcdir="${dir.src.main}" destdir="${dir.build.test.instrumented}" source="${bundle.source.version}" testsrcdir="${dir.src.test}" recordTestResults="true"/>
-    <javac srcdir="${dir.build.test.instrumented}" destdir="${dir.build.test.classes}" source="${bundle.source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
+    <clover-instrument srcdir="${dir.src.main}" destdir="${dir.build.test.instrumented}" source="${source.version}" testsrcdir="${dir.src.test}" recordTestResults="true"/>
+    <javac srcdir="${dir.build.test.instrumented}" destdir="${dir.build.test.classes}" source="${source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
       <classpath refid="classpath.compile"/>
       <classpath refid="classpath.net.evalcode.util.build.test"/>
       <classpath refid="classpath.net.evalcode.util.build.common"/>
     </javac>
      -->
-    <javac srcdir="${dir.src.test}" destdir="${dir.build.test.classes}" source="${bundle.source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
+    <javac srcdir="${dir.src.test}" destdir="${dir.build.test.classes}" source="${source.version}" debug="true" debuglevel="lines,source" fork="true" failonerror="true" includeantruntime="false">
       <classpath path="${dir.build.main}"/>
       <classpath refid="classpath.compile"/>
       <classpath refid="classpath.net.evalcode.util.build.test"/>
@@ -163,8 +163,8 @@
     report.pmd,
     report.cpd"/>
     <!--
-    report.clover"/>
-     -->
+    report.clover,
+    -->
 
 
   <!-- build jar: osgi bundle -->
@@ -183,7 +183,7 @@
   <!-- publish artifacts -->
   <target name="publish" depends="jar.bundle">
     <tstamp>
-      <format property="now" pattern="yyyyMMddHHmmss" locale="en_US"/> 
+      <format property="now" pattern="yyyyMMddHHmmss" locale="en,US"/> 
     </tstamp>
     <ivy:install from="local" to="remote" overwrite="true" validate="true" organisation="${bundle.group}" module="${bundle.name}" revision="${bundle.version.string}"/>
   </target>
@@ -200,8 +200,8 @@
       <excludepackage name="${bundle.name.full}.internal.**"/>
       <classpath refid="classpath.compile"/>
       <link href="http://docs.jboss.org/hibernate/core/3.6/javadocs/"/>
-      <link href="http://download.oracle.com/javaee/6/api/"/>
-      <link href="http://download.oracle.com/javase/7/docs/api/"/>
+      <link href="http://download.oracle.com/javaee/7/api/"/>
+      <link href="http://download.oracle.com/javase/8/docs/api/"/>
       <link href="http://google-guice.googlecode.com/svn/tags/3.0/javadoc/"/>
       <link href="http://jackson.codehaus.org/1.7.0/javadoc/"/>
       <link href="http://junit.sourceforge.net/javadoc/"/>
