@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentMap;
 import javax.inject.Singleton;
 import net.evalcode.services.manager.component.annotation.Component;
 import net.evalcode.services.manager.internal.ComponentBundleManagerModule;
+import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCache;
+import net.evalcode.services.manager.service.cache.impl.ehcache.internal.EhcacheCacheManagerFactory;
 import net.evalcode.services.manager.service.cache.spi.Cache;
 import net.evalcode.services.manager.service.cache.spi.CacheService;
 import net.sf.ehcache.CacheManager;

@@ -30,7 +30,7 @@ public class EhcacheCacheManagerFactory
 
 
   // MEMBERS
-  volatile CacheManager cacheManager=null;
+  volatile CacheManager cacheManager;
 
 
   // STATIC ACCESSORS

@@ -4,12 +4,9 @@ package net.evalcode.services.manager.service.cache.ioc;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import javax.inject.Provider;
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import net.evalcode.services.manager.component.ComponentBundleInterface;
 import net.evalcode.services.manager.service.cache.CacheServiceRegistry;
 import net.evalcode.services.manager.service.cache.annotation.Cache;
-import net.evalcode.services.manager.service.cache.annotation.CacheInstance;
 import net.evalcode.services.manager.service.cache.annotation.CollectionBacklog;
 import net.evalcode.services.manager.service.cache.annotation.Key;
 import net.evalcode.services.manager.service.cache.annotation.KeySegment;
@@ -17,6 +14,8 @@ import net.evalcode.services.manager.service.cache.annotation.Region;
 import net.evalcode.services.manager.service.cache.impl.MethodCacheKeyGenerator;
 import net.evalcode.services.manager.service.cache.spi.BacklogProvider;
 import net.evalcode.services.manager.service.cache.spi.internal.CacheKeyGenerator;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import com.google.inject.Injector;
 
 

@@ -35,7 +35,7 @@ public enum Environment
   // STATIC ACCESSORS
   public static Environment current()
   {
-    final String currentEnvironmentName=SystemProperty.ASIA_TMOGROUP_SERVICES_ENVIRONMENT.get();
+    final String currentEnvironmentName=SystemProperty.NET_EVALCODE_SERVICES_ENVIRONMENT.get();
 
     for(final Environment environment : values())
     {
@@ -45,7 +45,7 @@ public enum Environment
 
     throw new IllegalArgumentException(String.format(
       "Illegal/missing property value [property: %s].",
-        SystemProperty.ASIA_TMOGROUP_SERVICES_ENVIRONMENT.name()
+        SystemProperty.NET_EVALCODE_SERVICES_ENVIRONMENT.name()
     ));
   }
 

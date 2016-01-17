@@ -11,7 +11,7 @@ import com.google.common.hash.Hashing;
 /**
  * Hash
  *
- * @author evalcode.net
+ * @author carsten.schipke@gmail.com
  */
 public class Hash
 {
